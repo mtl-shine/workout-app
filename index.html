@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Набор">
+<meta name="theme-color" content="#0f0f13">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Набор — Тренировки</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Golos+Text:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0f0f13;
+    --surface: #18181f;
+    --surface2: #22222d;
+    --surface3: #2a2a38;
+    --accent: #c8f060;
+    --accent2: #7b61ff;
+    --accent3: #ff6b6b;
+    --text: #f0f0f5;
+    --text2: #9090a8;
+    --text3: #5a5a72;
+    --border: #2e2e3e;
+    --gym-color: #c8f060;
+    --home-color: #7b61ff;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Golos Text', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3 { font-family: 'Unbounded', sans-serif; }
+
+  .app-header {
+    padding: 18px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+  }
+  .app-title { font-size: 15px; font-weight: 700; letter-spacing: 0.05em; color: var(--accent); }
+  .day-badge {
+    font-size: 11px;
+    font-family: 'Unbounded', sans-serif;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .day-badge.gym { background: rgba(200,240,96,0.15); color: var(--gym-color); }
+  .day-badge.home { background: rgba(123,97,255,0.15); color: var(--home-color); }
+
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 200;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 12px 8px 10px;
+    border: none; background: none;
+    color: var(--text3);
+    font-family: 'Golos Text', sans-serif; font-size: 11px;
+    cursor: pointer; transition: color 0.2s;
+  }
+  .nav-btn.active { color: var(--accent); }
+  .nav-icon { font-size: 20px; line-height: 1; }
+
+  .screen { display: none; padding: 14px 14px 100px; }
+  .screen.active { display: block; }
+
+  .day-tabs {
+    display: flex; gap: 6px;
+    margin-bottom: 16px;
+    overflow-x: auto; padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tab {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: none; color: var(--text2);
+    font-family: 'Unbounded', sans-serif; font-size: 11px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .day-tab.active.gym { border-color: var(--gym-color); color: var(--gym-color); background: rgba(200,240,96,0.08); }
+  .day-tab.active.home { border-color: var(--home-color); color: var(--home-color); background: rgba(123,97,255,0.08); }
+
+  .section-label {
+    font-size: 10px;
+    font-family: 'Unbounded', sans-serif;
+    letter-spacing: 0.12em; color: var(--text3);
+    text-transform: uppercase;
+    margin: 18px 0 8px; padding-left: 2px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* EXERCISE CARD */
+  .ex-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .ex-header {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 12px 10px;
+    cursor: pointer; user-select: none;
+  }
+  .ex-num {
+    font-family: 'Unbounded', sans-serif; font-size: 10px; font-weight: 700;
+    color: var(--text3); min-width: 16px; padding-top: 2px;
+  }
+  .ex-info { flex: 1; min-width: 0; }
+  .ex-name { font-size: 13px; font-weight: 600; line-height: 1.35; color: var(--text); margin-bottom: 4px; }
+  .ex-meta-line { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+
+  /* SET DOTS */
+  .sets-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .set-dot {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: none; cursor: pointer;
+    transition: all 0.18s;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .set-dot:active { transform: scale(0.88); }
+  .set-dot.done { background: var(--accent); border-color: var(--accent); }
+  .sets-done-check { font-size: 18px; color: var(--accent); }
+  .sets-done-label { font-size: 11px; color: var(--accent); margin-left: 2px; }
+
+  /* WEIGHT */
+  .ex-right {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0;
+  }
+  .ex-weight-controls {
+    display: flex; align-items: center; gap: 4px;
+    background: var(--surface2); border-radius: 8px; padding: 3px;
+  }
+  .w-btn {
+    width: 28px; height: 28px; border-radius: 6px;
+    border: none; background: var(--surface3); color: var(--text);
+    font-size: 17px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .w-btn:active { background: var(--accent); color: var(--bg); }
+  .w-value {
+    font-family: 'Unbounded', sans-serif; font-size: 11px; font-weight: 600;
+    color: var(--text); min-width: 54px; text-align: center; white-space: nowrap;
+  }
+  .w-history-btn {
+    font-size: 10px; color: var(--text3);
+    background: none; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    transition: color 0.2s;
+  }
+  .w-history-btn:hover { color: var(--accent); }
+
+  .ex-chevron { color: var(--text3); transition: transform 0.3s; flex-shrink: 0; margin-top: 3px; }
+  .ex-detail.open ~ * .ex-chevron { transform: rotate(180deg); }
+
+  .ex-detail { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+  .ex-detail.open { max-height: 1500px; }
+  .ex-detail-inner { padding: 12px 12px 14px; border-top: 1px solid var(--border); }
+
+  .tech-text { font-size: 13px; color: var(--text2); line-height: 1.7; white-space: pre-line; }
+
+  .timer-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface2); border-radius: 20px;
+    padding: 5px 12px; font-size: 12px; color: var(--text2);
+    cursor: pointer; margin-bottom: 10px;
+    border: 1px solid var(--border); transition: border-color 0.2s;
+  }
+  .timer-chip.running { border-color: var(--accent); color: var(--accent); }
+  .timer-display { font-family: 'Unbounded', sans-serif; font-size: 11px; min-width: 30px; }
+
+  .media-placeholder {
+    margin-top: 12px;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .media-placeholder:hover { border-color: var(--accent); background: rgba(200,240,96,0.04); }
+  .media-placeholder-text { font-size: 12px; color: var(--text3); }
+  .media-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .media-thumb { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; cursor: pointer; }
+  .media-video-thumb {
+    width: 80px; height: 80px; border-radius: 8px;
+    background: var(--surface3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 28px;
+  }
+  .media-item { position: relative; display: inline-block; }
+  .media-remove {
+    position: absolute; top: 2px; right: 2px;
+    width: 18px; height: 18px;
+    background: var(--accent3); border: none; border-radius: 50%;
+    color: white; font-size: 11px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; z-index: 2;
+  }
+
+  /* MODALS */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 500;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    padding: 20px 20px 40px;
+    width: 100%; max-width: 480px; max-height: 80vh;
+    overflow-y: auto; animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 18px; }
+  .modal-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; font-family: 'Unbounded', sans-serif; line-height: 1.4; }
+
+  .history-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-date { font-size: 12px; color: var(--text2); }
+  .history-weight { font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); }
+  .history-diff { font-size: 11px; }
+  .history-diff.up { color: var(--accent); }
+  .history-diff.down { color: var(--accent3); }
+  .history-diff.same { color: var(--text3); }
+
+  /* LIGHTBOX */
+  .lightbox {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.95); z-index: 600;
+    align-items: center; justify-content: center;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img, .lightbox video { max-width: 100%; max-height: 88vh; border-radius: 8px; }
+  .lightbox-close {
+    position: absolute; top: 20px; right: 20px;
+    background: rgba(255,255,255,0.1); border: none; color: white;
+    font-size: 22px; width: 40px; height: 40px;
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* PROGRESS */
+  .progress-empty { text-align: center; padding: 40px 20px; color: var(--text3); }
+  .progress-empty .big-icon { font-size: 44px; margin-bottom: 14px; }
+  .progress-empty p { font-size: 14px; line-height: 1.6; }
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 20px; text-align: center; cursor: pointer;
+    transition: all 0.2s; margin-bottom: 20px;
+  }
+  .upload-zone:hover { border-color: var(--accent2); background: rgba(123,97,255,0.04); }
+  .upload-zone p { font-size: 13px; color: var(--text2); margin-top: 8px; }
+
+  .photo-date-group { margin-bottom: 22px; }
+  .photo-date-label { font-size: 11px; font-family: 'Unbounded', sans-serif; color: var(--text3); letter-spacing: 0.1em; margin-bottom: 8px; }
+  .photo-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .photo-row::-webkit-scrollbar { display: none; }
+  .photo-thumb-wrap { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .photo-thumb { width: 100px; height: 130px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
+  .photo-thumb:hover { border-color: var(--accent2); }
+  .photo-view-label { font-size: 10px; color: var(--text3); }
+
+  .compare-tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; scrollbar-width: none; }
+  .compare-tabs::-webkit-scrollbar { display: none; }
+  .compare-tab {
+    flex-shrink: 0; padding: 7px 12px; border-radius: 20px;
+    border: 1.5px solid var(--border); background: none; color: var(--text2);
+    font-size: 11px; font-family: 'Unbounded', sans-serif; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .compare-tab.active { border-color: var(--accent2); color: var(--accent2); background: rgba(123,97,255,0.1); }
+
+  .compare-views { display: flex; gap: 6px; margin-bottom: 12px; }
+  .view-chip {
+    flex-shrink: 0; padding: 5px 12px; border-radius: 20px; font-size: 11px;
+    border: 1px solid var(--border); background: none; color: var(--text3);
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .view-chip.active { background: var(--surface2); color: var(--text); border-color: var(--text3); }
+
+  .compare-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .compare-photo-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .compare-photo { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 10px; cursor: pointer; }
+  .compare-label { font-size: 11px; color: var(--text2); text-align: center; }
+  .compare-empty-slot {
+    width: 100%; aspect-ratio: 3/4; background: var(--surface2); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text3); font-size: 12px; text-align: center; padding: 10px;
+  }
+  .date-select-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .date-select {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-family: 'Golos Text', sans-serif; font-size: 13px;
+    padding: 10px 12px; outline: none; appearance: none;
+  }
+
+  .no-weight { color: var(--text3); font-size: 12px; font-style: italic; }
+
+  .toast {
+    position: fixed; bottom: 90px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 10px 18px;
+    font-size: 13px; color: var(--text);
+    z-index: 700; opacity: 0; transition: all 0.3s;
+    white-space: nowrap; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  input[type="file"] { display: none; }
+  .action-btn {
+    background: var(--accent); color: var(--bg); border: none;
+    border-radius: 12px; padding: 14px;
+    font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 700;
+    cursor: pointer; width: 100%; margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-title">НАБОР</div>
+  <div class="day-badge gym" id="headerDayBadge">ПН · ЗАЛ</div>
+</div>
+
+<div class="screen active" id="screen-today">
+  <div class="day-tabs" id="dayTabs"></div>
+  <div id="workoutContent"></div>
+</div>
+
+<div class="screen" id="screen-progress">
+  <div class="compare-tabs" id="compareTabs">
+    <button class="compare-tab active" data-mode="all">За всё время</button>
+    <button class="compare-tab" data-mode="week">Неделя</button>
+    <button class="compare-tab" data-mode="custom">Свободный выбор</button>
+    <button class="compare-tab" data-mode="gallery">Все фото</button>
+  </div>
+  <div class="compare-views" id="viewChips">
+    <button class="view-chip active" data-view="front">Анфас</button>
+    <button class="view-chip" data-view="side">Профиль</button>
+    <button class="view-chip" data-view="back">Спина</button>
+  </div>
+  <div id="progressContent"></div>
+  <div class="upload-zone" id="uploadZone">
+    <div style="font-size:30px">📸</div>
+    <p>Добавить фото прогресса</p>
+  </div>
+  <input type="file" id="progressFileInput" accept="image/*" multiple>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="switchScreen('today',this)">
+    <div class="nav-icon">🏋️</div><span>Тренировка</span>
+  </button>
+  <button class="nav-btn" onclick="switchScreen('progress',this)">
+    <div class="nav-icon">📸</div><span>Прогресс</span>
+  </button>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="modal-overlay" id="historyModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="historyModalTitle"></div>
+    <div id="historyModalContent"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" style="display:none">
+  <video id="lightboxVideo" controls style="display:none"></video>
+</div>
+
+<!-- PHOTO META MODAL -->
+<div class="modal-overlay" id="photoMetaModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Информация о фото</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px">
+      <div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Дата съёмки</div>
+        <input type="date" id="photoDate" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Golos Text',sans-serif;font-size:14px;padding:10px 12px;outline:none">
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Ракурс</div>
+        <div style="display:flex;gap:8px" id="viewPickRow">
+          <button class="view-chip active" data-pick="front" onclick="pickView(this)">Анфас</button>
+          <button class="view-chip" data-pick="side" onclick="pickView(this)">Профиль</button>
+          <button class="view-chip" data-pick="back" onclick="pickView(this)">Спина</button>
+        </div>
+      </div>
+      <button class="action-btn" onclick="savePhotoMeta()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// EXERCISE DATABASE
+// ============================================================
+const EXERCISES = {
+  ikry:             { name:'Икры сидя в тренажёре', weight:30, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
+  press:            { name:'Пресс в тренажёре', weight:22.5, weightStep:0.25, weightUnit:'кг',
+                      tech:'Напрячь пресс и вдавить поясницу — стараться не отрывать её от плоскости тренажёра на всём протяжении подходов.', media:[] },
+  v_podyomy:        { name:'V-подъёмы', weight:2, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
+  pulover:          { name:'Пуловер с гантелью поперёк скамьи', weight:7, weightStep:0.25, weightUnit:'кг',
+                      tech:`Прямой угол в коленях. Разобрать рёбра, растянуть лопатки. Наверх — максимально собраться, собрать рёбра, пресс. Корпус параллельно полу.\n\nПодкручивать копчик и сокращать пресс — в верхней точке рёбра приблизить к тазовым костям.\n\nСуть: удерживать лопатками и зубчатыми, сопротивляясь весу и гравитации.\n\nМедленное подконтрольное опускание гантели за голову на почти прямых руках (локти мягкие и развёрнуты; запястье не ниже локтя).`, media:[] },
+  vytyazhka_1:      { name:'Горизонтальная вытяжка по 1 руке', weight:27.5, weightStep:0.25, weightUnit:'кг',
+                      tech:`Начинать ложиться противоположной стороной от веса: сначала бок поясницы, потом бок грудного отдела и одна лопатка, потом одно плечо.\n\nВ последнюю очередь — положить второе плечо на пол и прижать вторую лопатку (та сторона, где вес).\n\nВверх на выдохе — всё наоборот: начинать вытягиваться стороной где вес.\n\nЗамедлиться везде минимум вдвое.`, media:[] },
+  vytyazhka_2:      { name:'Вытяжка с прямой палочкой двумя руками', weight:37.5, weightStep:0.25, weightUnit:'кг',
+                      tech:`Опускаться аккуратно с круглой спиной: сначала поясница, потом грудной отдел и лопатки, последними ложатся плечи.\n\nНа выдохе позволить себя вытянуть весу — корпусом тянуться вверх.\n\nВ верхней точке замирать на пару секунд и тянуться вверх.`, media:[] },
+  zhim_lezha:       { name:'Жим лёжа со штангой', weight:7.5, weightStep:0.25, weightUnit:'кг (блины)',
+                      tech:`Браться шире — прямой или чуть тупой угол в нижней точке между локтем и запястьем.\n\nПри снятии грифа проверни запястье вверх, чтобы гриф не лежал на суставе. Так хват будет жёстче и снимешь часть нагрузки с трицепса.`, media:[] },
+  tyaga_verh_parallel:{ name:'Тяга верхнего блока широким параллельным хватом', weight:27.5, weightStep:0.25, weightUnit:'кг',
+                      tech:`Взяться максимально широко. Руки жёсткие, локти мягкие — движение только за счёт лопаток.\n\nКороткая амплитуда: дать весу вытянуть лопатки, сократить и свести, направить к низу спины, грудь вверх.\n\nТянуть спиной, руками лишь дотягивать. Держать пресс — рёбра на одной линии с лобком.`, media:[] },
+  otzhimaniya:      { name:'Отжимания', weight:null, weightStep:null, weightUnit:'', weightDisplay:'макс', tech:'', media:[] },
+  prised_ganteli:   { name:'Присед с гантелью на бёдрах и блинами под пятки', weight:15, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
+  yagodichny_most:  { name:'Ягодичный мост в тренажёре', weight:42.5, weightStep:0.25, weightUnit:'кг',
+                      tech:`Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.`, media:[] },
+  zhim_platformy:   { name:'Жим горизонтальной платформы высокой постановкой по 1 ноге', weight:25, weightStep:0.25, weightUnit:'кг',
+                      tech:`Поставить стопу на уровень груди. Плотно прижать поясницу, откинуться на спинке.\n\nПостановка ноги высокая, стопа на середине платформы. Стопу чуть ниже — буквально 3–5 см.\n\n2-ю ногу выпрямить и просунуть под дырку — пусть упирается в стену. Сгибание 2-й ноги перекашивает таз.`, media:[] },
+  podtyagivaniya:   { name:'Подтягивания в гравитроне', weight:19, weightStep:0.25, weightUnit:'кг противовес',
+                      tech:`Не снимать нагрузку со спины, не отпускать суставы до конца, не висеть.\n\nОпускаться до момента натяжения подмышками. Из этой точки — грудью вверх.\n\nОпускаться ещё чуть ниже — добиться растяжения и подтягиваться с растянутой позиции.`, media:[] },
+  tyaga_verh_klassik:{ name:'Тяга верхнего блока широким классическим хватом', weight:27.5, weightStep:0.25, weightUnit:'кг',
+                      tech:`Взяться максимально широко. Руки жёсткие, локти мягкие — движение только за счёт лопаток.\n\nТянуть спиной, руками лишь дотягивать. Движение начинается со спины.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс сильно, чтобы рёбра не выпирали.`, media:[] },
+  tyaga_gor:        { name:'Тяга горизонтального блока', weight:27.5, weightStep:0.25, weightUnit:'кг',
+                      tech:`Нет рывка руками. Чуть наклониться вперёд — при тяге на себя не отклонять корпус назад, привести руки к корпусу за счёт мышц спины.\n\nСесть: спина и корпус — прямая линия с тросом. Подкрутить копчик, напрячь пресс.\n\nЧуть больше отпускать — растягивать широчайшие.`, media:[] },
+  zhimy_gantelei:   { name:'Жимы гантелей сидя от груди вверх на плечи', weight:7, weightStep:0.25, weightUnit:'кг',
+                      tech:`Когда опускаешь вниз — локти закручивать вперёд перед корпусом.\n\nНе дожимать пик.`, media:[] },
+  protyazhka:       { name:'Протяжка лёжа с нижнего блока кроссовера', weight:17.5, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
+  tyaga_delt:       { name:'Тяга гантелей на задние дельты', weight:7, weightStep:0.25, weightUnit:'кг',
+                      tech:`Ссутулиться, разобрать лопатки, выключить их вообще.\n\nТянуть только локти вверх — думать о локтях вверх и к ушам.\n\nВниз «отпустить» подконтрольно, попытаться лопатками обнять лавку.\n\nЗадняя дельта должна работать без существенного движения лопаток — вниз отпускать больше, растягивать задние дельты.`, media:[] },
+  most:             { name:'Мост', weight:42.5, weightStep:0.25, weightUnit:'кг',
+                      tech:`Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.`, media:[] },
+  zhim_vert_platformy:{ name:'Жим вертикальной платформы', weight:50, weightStep:0.25, weightUnit:'кг',
+                      tech:`Стопы на ширине плеч на верхнем крае платформы, носки чуть кнаружи.`, media:[] },
+  sshgivaniya:      { name:'Сшагивания с тумбы у опоры с весом в одной руке', weight:10, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
+  rumynskaya:       { name:'Румынская в смите', weight:null, weightStep:0.25, weightUnit:'кг', weightDisplay:'—',
+                      tech:`Держать спину прямо, отводить таз назад. Корпус идёт за весом для баланса.\n\nПримерно до уровня колена — подсогнуть колено, микроподсед, ещё отвести таз назад. Встать ягодицей.\n\nОт копчика до затылка — прямая линия. Сначала прижать подбородок, и только потом таз назад.`, media:[] },
+  glyut:            { name:'Глют', weight:20, weightStep:0.25, weightUnit:'кг',
+                      tech:`Упереть опорную ногу в подушку. Стопа чётко под тазом.\n\nДвижущуюся ногу — ближе к середине платформы, максимум по верху. Максимально подконтрольно сократить вниз и вытолкнуть ягодицей, не слишком высоко.\n\nСтопа чуть вбок, носок чуть наружу.`, media:[] },
+  razvedeniya:      { name:'Отведения с гантелью', weight:40, weightStep:0.25, weightUnit:'кг',
+                      tech:`Двинуть таз вперёд, ближе к краю подушки, угол корпуса тупой. Опереться на пятку.\n\nПриподнять таз на мм, еле касаться подушки.\n\nСледующий этап: вставать в мост, упираясь лопатками.`, media:[] },
+  myachik:          { name:'Мячик (3 положения)', weight:null, weightStep:null, weightUnit:'', weightDisplay:'',
+                      tech:`1-е положение — по верху лопаток.\n2-е положение — глубоко дышать и под собственной тяжестью опускаться (не через силу и боль).\n3-е положение — под нижней резинкой топа. Давить прессом поясницу в пол, не расслаблять кор.`, media:[] },
+  lodochka:         { name:'Лодочка (hollow hold)', weight:null, weightStep:null, weightUnit:'', weightDisplay:'',
+                      tech:`Поясница прижата к полу. Рёбра вниз. Таз слегка подкручен.`, media:[], isTime:true },
+  obratnaya_planka: { name:'Обратная планка с поднятием ног', weight:null, weightStep:null, weightUnit:'', weightDisplay:'',
+                      tech:`Таз слегка подкрутить. Собрать, опустить рёбра. Не прогибаться в пояснице.\n\nМежду рёбрами сократить мышцы — думать в сторону треугольника между рёбрами.`, media:[], isTime:true },
+  vypady:           { name:'Выпады (обычные и глубокие)', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[] },
+  rastyazhka_divana:{ name:'Растяжка с дивана', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[], isTime:true },
+  skladochka:       { name:'Складочка', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[] },
+  vysokaya_planka:  { name:'Высокая планка', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[], isTime:true },
+  stoika_na_rukah:  { name:'Стойка на руках у стены', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[], isTime:true }
+};
+
+const WORKOUTS = {
+  mon: { label:'ПН', type:'gym', title:'Фулбади', sections:[
+    { label:'Начало тренировки', exercises:[{id:'ikry',sets:2,reps:15},{id:'press',sets:2,reps:12}] },
+    { label:'Основной блок', exercises:[
+      {id:'zhim_lezha',sets:4,reps:'5–8'},{id:'tyaga_verh_parallel',sets:5,reps:10},
+      {id:'otzhimaniya',sets:4,reps:'макс'},{id:'prised_ganteli',sets:4,reps:12},
+      {id:'yagodichny_most',sets:4,reps:10},{id:'zhim_platformy',sets:4,reps:12}
+    ]},
+    { label:'Середина тренировки', exercises:[{id:'v_podyomy',sets:2,reps:15},{id:'pulover',sets:2,reps:15}] },
+    { label:'Конец тренировки', exercises:[
+      {id:'vytyazhka_1',sets:2,reps:12,note:'на каждую руку'},{id:'vytyazhka_2',sets:1,reps:15}
+    ]}
+  ]},
+  tue: { label:'ВТ', type:'home', title:'Домашняя', sections:[
+    { label:'Основной блок', exercises:[
+      {id:'myachik',sets:1,reps:'3 положения'},{id:'lodochka',sets:3,time:40},
+      {id:'obratnaya_planka',sets:3,time:40},{id:'vypady',sets:3,reps:12},
+      {id:'rastyazhka_divana',sets:3,time:30,note:'на каждую ногу'},{id:'skladochka',sets:null,reps:null,note:'по ощущениям'}
+    ]}
+  ]},
+  wed: { label:'СР', type:'gym', title:'Верх', sections:[
+    { label:'Начало тренировки', exercises:[{id:'ikry',sets:2,reps:15},{id:'press',sets:2,reps:12}] },
+    { label:'Основной блок', exercises:[
+      {id:'podtyagivaniya',sets:3,reps:10},{id:'tyaga_verh_klassik',sets:3,reps:10},
+      {id:'tyaga_gor',sets:3,reps:10},{id:'zhimy_gantelei',sets:4,reps:12},
+      {id:'protyazhka',sets:4,reps:12},{id:'tyaga_delt',sets:3,reps:12}
+    ]},
+    { label:'Середина тренировки', exercises:[{id:'v_podyomy',sets:2,reps:15},{id:'pulover',sets:2,reps:15}] },
+    { label:'Конец тренировки', exercises:[
+      {id:'vytyazhka_1',sets:2,reps:12,note:'на каждую руку'},{id:'vytyazhka_2',sets:1,reps:15}
+    ]}
+  ]},
+  thu: { label:'ЧТ', type:'home', title:'Домашняя', sections:[
+    { label:'Основной блок', exercises:[
+      {id:'myachik',sets:1,reps:'3 положения'},{id:'lodochka',sets:3,time:40},
+      {id:'obratnaya_planka',sets:3,time:40},{id:'vypady',sets:3,reps:12},
+      {id:'vysokaya_planka',sets:3,time:90},{id:'stoika_na_rukah',sets:3,time:60}
+    ]}
+  ]},
+  fri: { label:'ПТ', type:'gym', title:'Низ · Ягодицы', sections:[
+    { label:'Основной блок', exercises:[
+      {id:'most',sets:4,reps:10},{id:'zhim_vert_platformy',sets:4,reps:10},
+      {id:'sshgivaniya',sets:3,reps:12},{id:'rumynskaya',sets:3,reps:12},
+      {id:'glyut',sets:3,reps:12},{id:'razvedeniya',sets:3,reps:20}
+    ]},
+    { label:'Конец тренировки', exercises:[{id:'vytyazhka_2',sets:2,reps:15}] }
+  ]},
+  sat: { label:'СБ', type:'home', title:'Мячик', sections:[
+    { label:'Упражнение', exercises:[{id:'myachik',sets:1,reps:'3 положения'}] }
+  ]}
+};
+
+const DAYS_ORDER = ['mon','tue','wed','thu','fri','sat'];
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  currentDay: 'mon',
+  weights: {}, weightHistory: {},
+  media: {},
+  completedSets: {},
+  lastResetDate: null,
+  progressPhotos: [],
+  compareMode: 'all', compareView: 'front',
+};
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem('workout_v3') || '{}');
+    state.weights = s.weights || {};
+    state.weightHistory = s.weightHistory || {};
+    state.progressPhotos = s.progressPhotos || [];
+    state.lastResetDate = s.lastResetDate || null;
+  } catch(e) {}
+
+  Object.keys(EXERCISES).forEach(id => {
+    if (!(id in state.weights)) state.weights[id] = EXERCISES[id].weight ?? null;
+  });
+
+  const today = new Date().toISOString().slice(0,10);
+  if (state.lastResetDate !== today) {
+    state.completedSets = {};
+    state.lastResetDate = today;
+    saveState();
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('workout_v3', JSON.stringify({
+      weights: state.weights,
+      weightHistory: state.weightHistory,
+      progressPhotos: state.progressPhotos,
+      lastResetDate: state.lastResetDate,
+    }));
+  } catch(e) {}
+}
+
+// ============================================================
+// WEIGHT
+// ============================================================
+function changeWeight(exId, delta, wEl) {
+  const ex = EXERCISES[exId];
+  const step = ex.weightStep || 0.25;
+  let cur = state.weights[exId] ?? 0;
+  const newVal = Math.round((cur + delta * step) * 100) / 100;
+  if (newVal < 0) return;
+
+  const today = new Date().toISOString().slice(0,10);
+  if (!state.weightHistory[exId]) state.weightHistory[exId] = [];
+  const hist = state.weightHistory[exId];
+  if (hist.length && hist[hist.length-1].date === today) hist[hist.length-1].weight = newVal;
+  else hist.push({ date: today, weight: newVal });
+
+  state.weights[exId] = newVal;
+  saveState();
+  if (wEl) wEl.textContent = newVal + ' ' + (ex.weightUnit || 'кг');
+}
+
+// ============================================================
+// SET DOTS
+// ============================================================
+function toggleSet(uid, idx, total) {
+  if (!state.completedSets[uid]) state.completedSets[uid] = [];
+  const arr = state.completedSets[uid];
+  const pos = arr.indexOf(idx);
+  if (pos === -1) arr.push(idx); else arr.splice(pos, 1);
+  const row = document.getElementById('sets_' + uid);
+  if (row) row.innerHTML = buildDots(uid, total);
+  if (arr.length >= total && total > 0) showToast('✓ Упражнение выполнено!');
+}
+
+function buildDots(uid, total) {
+  if (!total) return '';
+  const done = state.completedSets[uid] || [];
+  if (done.length >= total) return `<span class="sets-done-check">✓</span><span class="sets-done-label">Готово!</span>`;
+  let h = '';
+  for (let i = 0; i < total; i++) {
+    h += `<button class="set-dot ${done.includes(i)?'done':''}" onclick="event.stopPropagation();toggleSet('${uid}',${i},${total})"></button>`;
+  }
+  return h;
+}
+
+// ============================================================
+// TIMERS
+// ============================================================
+const timers = {};
+function startTimer(uid, secs, btn) {
+  if (timers[uid]) {
+    clearInterval(timers[uid]);
+    delete timers[uid];
+    btn.classList.remove('running');
+    btn.querySelector('.timer-display').textContent = fmtSec(secs);
+    return;
+  }
+  let rem = secs;
+  btn.classList.add('running');
+  const disp = btn.querySelector('.timer-display');
+  timers[uid] = setInterval(() => {
+    rem--;
+    disp.textContent = fmtSec(rem);
+    if (rem <= 0) {
+      clearInterval(timers[uid]); delete timers[uid];
+      btn.classList.remove('running');
+      disp.textContent = fmtSec(secs);
+      showToast('⏱ Время!');
+      if (navigator.vibrate) navigator.vibrate([200,100,200]);
+    }
+  }, 1000);
+}
+function fmtSec(s) {
+  if (s <= 0) return '0с';
+  const m = Math.floor(s/60), sec = s%60;
+  return m > 0 ? `${m}:${sec.toString().padStart(2,'0')}` : `${s}с`;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderWorkout() {
+  const day = state.currentDay;
+  const w = WORKOUTS[day];
+  const badge = document.getElementById('headerDayBadge');
+  badge.textContent = `${w.label} · ${w.type==='gym'?'ЗАЛ':'ДОМА'}`;
+  badge.className = `day-badge ${w.type}`;
+
+  let html = '';
+  w.sections.forEach(sec => {
+    html += `<div class="section-label">${sec.label}</div>`;
+    sec.exercises.forEach((e, i) => { html += renderCard(e, i+1, day); });
+  });
+  document.getElementById('workoutContent').innerHTML = html;
+}
+
+function renderCard(entry, num, day) {
+  const ex = EXERCISES[entry.id];
+  if (!ex) return '';
+  const uid = `${day}_${entry.id}_${num}`;
+  const hasW = ex.weightStep !== null && ex.weightStep !== undefined;
+
+  let meta = [];
+  if (entry.sets && entry.reps) meta.push(`${entry.sets} × ${entry.reps}`);
+  else if (entry.sets && entry.time) meta.push(`${entry.sets} × ${fmtSec(entry.time)}`);
+  else if (entry.sets) meta.push(`${entry.sets} подх.`);
+  if (entry.note) meta.push(entry.note);
+
+  const wVal = state.weights[entry.id];
+  const wDisplay = (wVal !== null && wVal !== undefined) ? `${wVal} ${ex.weightUnit||'кг'}` : (ex.weightDisplay||'—');
+
+  const weightHTML = hasW ? `
+    <div class="ex-right">
+      <div class="ex-weight-controls">
+        <button class="w-btn" onclick="event.stopPropagation();changeWeight('${entry.id}',-1,document.getElementById('w_${uid}'))">−</button>
+        <div class="w-value" id="w_${uid}">${wDisplay}</div>
+        <button class="w-btn" onclick="event.stopPropagation();changeWeight('${entry.id}',1,document.getElementById('w_${uid}'))">+</button>
+      </div>
+      <button class="w-history-btn" onclick="event.stopPropagation();showHistory('${entry.id}')">📈 история</button>
+    </div>` :
+    (ex.weightDisplay ? `<div class="ex-right"><div class="no-weight">${ex.weightDisplay}</div></div>` : '');
+
+  const total = entry.sets || 0;
+  const dotsHTML = total > 0 ? `<div class="sets-row" id="sets_${uid}">${buildDots(uid, total)}</div>` : '';
+  const timerHTML = entry.time ? `<button class="timer-chip" onclick="startTimer('${uid}',${entry.time},this)">⏱ <span class="timer-display">${fmtSec(entry.time)}</span></button><br>` : '';
+
+  const mediaFiles = (state.media||{})[entry.id] || [];
+  let mediaGridHTML = '';
+  if (mediaFiles.length) {
+    mediaGridHTML = '<div class="media-grid">' + mediaFiles.map((f,i) =>
+      f.type==='video'
+        ? `<div class="media-item"><div class="media-video-thumb" onclick="openLightboxVideo('${entry.id}',${i})">🎬</div><button class="media-remove" onclick="removeMedia('${entry.id}',${i})">✕</button></div>`
+        : `<div class="media-item"><img class="media-thumb" src="${f.src}" onclick="openLightboxImg('${entry.id}',${i})"><button class="media-remove" onclick="removeMedia('${entry.id}',${i})">✕</button></div>`
+    ).join('') + '</div>';
+  }
+
+  return `
+<div class="ex-card">
+  <div class="ex-header" onclick="toggleDetail('${uid}')">
+    <div class="ex-num">${num}</div>
+    <div class="ex-info">
+      <div class="ex-name">${ex.name}</div>
+      <div class="ex-meta-line">${meta.join(' · ')}</div>
+      ${dotsHTML}
+    </div>
+    ${weightHTML}
+    <svg class="ex-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="ex-detail" id="detail_${uid}">
+    <div class="ex-detail-inner">
+      ${timerHTML}${ex.tech ? `<div class="tech-text">${ex.tech}</div>` : ''}
+      ${mediaGridHTML}
+      <div class="media-placeholder" onclick="document.getElementById('mi_${uid}').click()">
+        <span>📎</span><span class="media-placeholder-text">Прикрепить фото / видео</span>
+      </div>
+      <input type="file" id="mi_${uid}" accept="image/*,video/*" multiple onchange="handleMediaFiles('${entry.id}',this)">
+    </div>
+  </div>
+</div>`;
+}
+
+function toggleDetail(uid) {
+  document.getElementById('detail_'+uid)?.classList.toggle('open');
+}
+
+// ============================================================
+// MEDIA
+// ============================================================
+function handleMediaFiles(exId, input) {
+  if (!state.media) state.media = {};
+  if (!state.media[exId]) state.media[exId] = [];
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      state.media[exId].push({ src: e.target.result, type: file.type.startsWith('video')?'video':'image' });
+      renderWorkout(); showToast('Медиафайл прикреплён');
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function removeMedia(exId, idx) { state.media?.[exId]?.splice(idx,1); renderWorkout(); }
+function openLightboxImg(exId, idx) {
+  document.getElementById('lightboxImg').src = state.media[exId][idx].src;
+  document.getElementById('lightboxImg').style.display = 'block';
+  document.getElementById('lightboxVideo').style.display = 'none';
+  document.getElementById('lightbox').classList.add('open');
+}
+function openLightboxVideo(exId, idx) {
+  const vid = document.getElementById('lightboxVideo');
+  vid.src = state.media[exId][idx].src;
+  vid.style.display = 'block';
+  document.getElementById('lightboxImg').style.display = 'none';
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  try { document.getElementById('lightboxVideo').pause(); } catch(e){}
+}
+
+// ============================================================
+// HISTORY MODAL
+// ============================================================
+function showHistory(exId) {
+  const ex = EXERCISES[exId];
+  const hist = [...(state.weightHistory[exId]||[])].reverse();
+  document.getElementById('historyModalTitle').textContent = ex.name;
+  let html = '';
+  if (!hist.length) {
+    html = '<div style="color:var(--text3);font-size:14px;padding:20px 0;text-align:center">История пока пуста</div>';
+  } else {
+    hist.forEach((entry, i) => {
+      const prev = hist[i+1];
+      let diffHTML = '';
+      if (prev) {
+        const d = Math.round((entry.weight - prev.weight)*100)/100;
+        if (d>0) diffHTML=`<span class="history-diff up">+${d}</span>`;
+        else if (d<0) diffHTML=`<span class="history-diff down">${d}</span>`;
+        else diffHTML=`<span class="history-diff same">—</span>`;
+      }
+      const ds = new Date(entry.date).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+      html += `<div class="history-item">
+        <div class="history-date">${ds}</div>
+        <div style="display:flex;align-items:center;gap:8px">${diffHTML}<div class="history-weight">${entry.weight} ${ex.weightUnit||'кг'}</div></div>
+      </div>`;
+    });
+  }
+  document.getElementById('historyModalContent').innerHTML = html;
+  document.getElementById('historyModal').classList.add('open');
+}
+
+// ============================================================
+// DAY TABS
+// ============================================================
+function renderDayTabs() {
+  document.getElementById('dayTabs').innerHTML = DAYS_ORDER.map(day => {
+    const w = WORKOUTS[day];
+    const active = day===state.currentDay ? `active ${w.type}` : '';
+    return `<button class="day-tab ${active}" onclick="selectDay('${day}')">${w.label}</button>`;
+  }).join('');
+}
+
+function selectDay(day) {
+  state.currentDay = day;
+  renderDayTabs();
+  renderWorkout();
+}
+
+// ============================================================
+// SCREENS
+// ============================================================
+function switchScreen(screen, btn) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  btn.classList.add('active');
+  if (screen==='progress') renderProgress();
+}
+
+// ============================================================
+// PROGRESS
+// ============================================================
+function renderProgress() {
+  const content = document.getElementById('progressContent');
+  state.compareMode==='gallery' ? renderGallery(content) : renderCompare(content);
+}
+
+function renderGallery(container) {
+  const photos = state.progressPhotos;
+  if (!photos.length) { container.innerHTML=`<div class="progress-empty"><div class="big-icon">📸</div><p>Добавь первое фото прогресса</p></div>`; return; }
+  const byDate={};
+  photos.forEach(p=>{(byDate[p.date]=byDate[p.date]||[]).push(p);});
+  const vL={front:'Анфас',side:'Профиль',back:'Спина'};
+  let html='';
+  Object.keys(byDate).sort().reverse().forEach(date=>{
+    const dStr=new Date(date).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+    html+=`<div class="photo-date-group"><div class="photo-date-label">${dStr}</div><div class="photo-row">`;
+    ['front','side','back'].forEach(v=>{
+      const p=byDate[date].find(x=>x.view===v);
+      if(p) html+=`<div class="photo-thumb-wrap"><img class="photo-thumb" src="${p.src}" onclick="openProgressLightbox('${p.id}')"><div class="photo-view-label">${vL[v]}</div></div>`;
+    });
+    html+=`</div></div>`;
+  });
+  container.innerHTML=html;
+}
+
+function renderCompare(container) {
+  const vL={front:'Анфас',side:'Профиль',back:'Спина'};
+  const view=state.compareView;
+  const filtered=state.progressPhotos.filter(p=>p.view===view).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!filtered.length){container.innerHTML=`<div class="progress-empty"><div class="big-icon">📷</div><p>Нет фото «${vL[view]}»<br>Добавь ниже</p></div>`;return;}
+
+  if(state.compareMode==='custom'){
+    const dates=[...new Set(state.progressPhotos.map(p=>p.date))].sort();
+    const opts=dates.map(d=>`<option value="${d}">${new Date(d).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})}</option>`).join('');
+    const selL=container.querySelector('#customLeft')?.value||'';
+    const selR=container.querySelector('#customRight')?.value||'';
+    const left=selL?filtered.find(p=>p.date===selL):null;
+    const right=selR?filtered.find(p=>p.date===selR):null;
+    const lL=selL?new Date(selL).toLocaleDateString('ru-RU',{day:'numeric',month:'short'}):'Дата 1';
+    const rL=selR?new Date(selR).toLocaleDateString('ru-RU',{day:'numeric',month:'short'}):'Дата 2';
+    container.innerHTML=`<div class="date-select-row">
+      <select class="date-select" id="customLeft" onchange="renderProgress()"><option value="">Дата 1</option>${opts}</select>
+      <select class="date-select" id="customRight" onchange="renderProgress()"><option value="">Дата 2</option>${opts}</select>
+    </div>${pairHTML(left,right,lL,rL)}`;
+    if(selL) container.querySelector('#customLeft').value=selL;
+    if(selR) container.querySelector('#customRight').value=selR;
+    return;
+  }
+
+  let left,right,lL,rL;
+  if(state.compareMode==='all'){
+    left=filtered[0]; right=filtered[filtered.length-1]; lL='Начало'; rL='Сейчас';
+  } else {
+    right=filtered[filtered.length-1];
+    const wa=new Date(right.date); wa.setDate(wa.getDate()-7);
+    const waS=wa.toISOString().slice(0,10);
+    left=filtered.reduce((b,p)=>p.date<=waS?p:b,null)||(filtered.length>1?filtered[filtered.length-2]:filtered[0]);
+    lL='~Неделю назад'; rL='Сейчас';
+  }
+  container.innerHTML=pairHTML(left,right,lL,rL);
+}
+
+function pairHTML(left,right,lL,rL){
+  function slot(p,label){
+    if(!p) return `<div class="compare-photo-wrap"><div class="compare-empty-slot">Нет фото</div><div class="compare-label">${label}</div></div>`;
+    const d=new Date(p.date).toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'});
+    return `<div class="compare-photo-wrap"><img class="compare-photo" src="${p.src}" onclick="openProgressLightbox('${p.id}')"><div class="compare-label">${label}<br><span style="color:var(--text3);font-size:10px">${d}</span></div></div>`;
+  }
+  return `<div class="compare-pair">${slot(left,lL)}${slot(right,rL)}</div>`;
+}
+
+function openProgressLightbox(id){
+  const p=state.progressPhotos.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('lightboxImg').src=p.src;
+  document.getElementById('lightboxImg').style.display='block';
+  document.getElementById('lightboxVideo').style.display='none';
+  document.getElementById('lightbox').classList.add('open');
+}
+
+let pendingFiles=[];
+document.getElementById('uploadZone').addEventListener('click',()=>document.getElementById('progressFileInput').click());
+document.getElementById('progressFileInput').addEventListener('change',function(){
+  pendingFiles=Array.from(this.files);
+  if(!pendingFiles.length) return;
+  document.getElementById('photoDate').value=new Date().toISOString().slice(0,10);
+  document.querySelectorAll('#viewPickRow .view-chip').forEach((b,i)=>b.classList.toggle('active',i===0));
+  document.getElementById('photoMetaModal').classList.add('open');
+  this.value='';
+});
+
+function pickView(btn){
+  btn.closest('div').querySelectorAll('.view-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function savePhotoMeta(){
+  const date=document.getElementById('photoDate').value;
+  const view=document.querySelector('#viewPickRow .view-chip.active')?.getAttribute('data-pick')||'front';
+  const views=['front','side','back'];
+  let done=0;
+  pendingFiles.forEach((file,i)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      state.progressPhotos.push({id:Date.now()+'_'+i,src:e.target.result,date,view:pendingFiles.length>1?views[i%3]:view});
+      if(++done===pendingFiles.length){saveState();renderProgress();showToast(`Добавлено ${done} фото`);}
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('photoMetaModal').classList.remove('open');
+  pendingFiles=[];
+}
+
+document.getElementById('compareTabs').addEventListener('click',e=>{
+  const btn=e.target.closest('.compare-tab');
+  if(!btn) return;
+  document.querySelectorAll('.compare-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  state.compareMode=btn.dataset.mode;
+  renderProgress();
+});
+
+document.getElementById('viewChips').addEventListener('click',e=>{
+  const chip=e.target.closest('.view-chip');
+  if(!chip) return;
+  document.querySelectorAll('#viewChips .view-chip').forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');
+  state.compareView=chip.dataset.view;
+  renderProgress();
+});
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadState();
+renderDayTabs();
+const todayMap={0:'sat',1:'mon',2:'tue',3:'wed',4:'thu',5:'fri',6:'sat'};
+selectDay(WORKOUTS[todayMap[new Date().getDay()]] ? todayMap[new Date().getDay()] : 'mon');
+</script>
+</body>
+</html>
