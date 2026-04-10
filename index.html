@@ -6,11 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Набор">
+<meta name="apple-mobile-web-app-title" content="Gym">
 <meta name="theme-color" content="#0f0f13">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Набор — Тренировки</title>
+<title>Gym</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Golos+Text:wght@400;500;600&display=swap');
 
@@ -57,7 +57,7 @@
     z-index: 100;
     border-bottom: 1px solid var(--border);
   }
-  .app-title { font-size: 15px; font-weight: 700; letter-spacing: 0.05em; color: var(--accent); }
+  .app-title { font-size: 18px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent); }
   .day-badge {
     font-size: 11px;
     font-family: 'Unbounded', sans-serif;
@@ -361,7 +361,7 @@
 <body>
 
 <div class="app-header">
-  <div class="app-title">НАБОР</div>
+  <div class="app-title">GYM</div>
   <div class="day-badge gym" id="headerDayBadge">ПН · ЗАЛ</div>
 </div>
 
@@ -445,7 +445,7 @@
 // EXERCISE DATABASE
 // ============================================================
 const EXERCISES = {
-  ikry:             { name:'Икры сидя в тренажёре', weight:30, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
+  ikry:             { name:'Икры сидя в тренажёре', weight:30, weightStep:0.25, weightUnit:'кг', tech:'Максимальный акцент на растяжении и подъём с давлением на сустав большого пальца.', media:[] },
   press:            { name:'Пресс в тренажёре', weight:22.5, weightStep:0.25, weightUnit:'кг',
                       tech:'Напрячь пресс и вдавить поясницу — стараться не отрывать её от плоскости тренажёра на всём протяжении подходов.', media:[] },
   v_podyomy:        { name:'V-подъёмы', weight:2, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
@@ -458,7 +458,7 @@ const EXERCISES = {
   zhim_lezha:       { name:'Жим лёжа со штангой', weight:7.5, weightStep:0.25, weightUnit:'кг (блины)',
                       tech:`Браться шире — прямой или чуть тупой угол в нижней точке между локтем и запястьем.\n\nПри снятии грифа проверни запястье вверх, чтобы гриф не лежал на суставе. Так хват будет жёстче и снимешь часть нагрузки с трицепса.`, media:[] },
   tyaga_verh_parallel:{ name:'Тяга верхнего блока широким параллельным хватом', weight:27.5, weightStep:0.25, weightUnit:'кг',
-                      tech:`Взяться максимально широко. Руки жёсткие, локти мягкие — движение только за счёт лопаток.\n\nКороткая амплитуда: дать весу вытянуть лопатки, сократить и свести, направить к низу спины, грудь вверх.\n\nТянуть спиной, руками лишь дотягивать. Держать пресс — рёбра на одной линии с лобком.`, media:[] },
+                      tech:`Не отпускать до конца. Спина и корпус — прямая линия с тросом, подкрутить копчик, напрячь пресс. Тянуть вниз чётко, в процессе отклоняться чуть.\n\nДвижение начинается со спины — тянуть спиной, руками лишь дотягивать и сокращать мышцы спины.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс сильно, чтобы рёбра не выпирали — сократить пресс так, чтобы рёбра были на одной линии с лобком. Это уберёт прогиб в пояснице.`, media:[] },
   otzhimaniya:      { name:'Отжимания', weight:null, weightStep:null, weightUnit:'', weightDisplay:'макс', tech:'', media:[] },
   prised_ganteli:   { name:'Присед с гантелью на бёдрах и блинами под пятки', weight:15, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
   yagodichny_most:  { name:'Ягодичный мост в тренажёре', weight:42.5, weightStep:0.25, weightUnit:'кг',
@@ -468,14 +468,14 @@ const EXERCISES = {
   podtyagivaniya:   { name:'Подтягивания в гравитроне', weight:19, weightStep:0.25, weightUnit:'кг противовес',
                       tech:`Не снимать нагрузку со спины, не отпускать суставы до конца, не висеть.\n\nОпускаться до момента натяжения подмышками. Из этой точки — грудью вверх.\n\nОпускаться ещё чуть ниже — добиться растяжения и подтягиваться с растянутой позиции.`, media:[] },
   tyaga_verh_klassik:{ name:'Тяга верхнего блока широким классическим хватом', weight:27.5, weightStep:0.25, weightUnit:'кг',
-                      tech:`Взяться максимально широко. Руки жёсткие, локти мягкие — движение только за счёт лопаток.\n\nТянуть спиной, руками лишь дотягивать. Движение начинается со спины.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс сильно, чтобы рёбра не выпирали.`, media:[] },
+                      tech:`Не отпускать до конца. Спина и корпус — прямая линия с тросом, подкрутить копчик, напрячь пресс. Тянуть вниз чётко, в процессе отклоняться чуть.\n\nДвижение начинается со спины — тянуть спиной, руками лишь дотягивать и сокращать мышцы спины.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс сильно, чтобы рёбра не выпирали — сократить пресс так, чтобы рёбра были на одной линии с лобком. Это уберёт прогиб в пояснице.`, media:[] },
   tyaga_gor:        { name:'Тяга горизонтального блока', weight:27.5, weightStep:0.25, weightUnit:'кг',
-                      tech:`Нет рывка руками. Чуть наклониться вперёд — при тяге на себя не отклонять корпус назад, привести руки к корпусу за счёт мышц спины.\n\nСесть: спина и корпус — прямая линия с тросом. Подкрутить копчик, напрячь пресс.\n\nЧуть больше отпускать — растягивать широчайшие.`, media:[] },
+                      tech:`Не должно быть рывка руками. Руки к корпусу привести за счёт мышц спины.\n\nЧуть наклониться вперёд и сосредоточиться на том, чтобы при тяге на себя не отклонять назад корпус.`, media:[] },
   zhimy_gantelei:   { name:'Жимы гантелей сидя от груди вверх на плечи', weight:7, weightStep:0.25, weightUnit:'кг',
-                      tech:`Когда опускаешь вниз — локти закручивать вперёд перед корпусом.\n\nНе дожимать пик.`, media:[] },
+                      tech:`Когда опускаешь вниз — локти закручивать вперёд перед корпусом.`, media:[] },
   protyazhka:       { name:'Протяжка лёжа с нижнего блока кроссовера', weight:17.5, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
   tyaga_delt:       { name:'Тяга гантелей на задние дельты', weight:7, weightStep:0.25, weightUnit:'кг',
-                      tech:`Ссутулиться, разобрать лопатки, выключить их вообще.\n\nТянуть только локти вверх — думать о локтях вверх и к ушам.\n\nВниз «отпустить» подконтрольно, попытаться лопатками обнять лавку.\n\nЗадняя дельта должна работать без существенного движения лопаток — вниз отпускать больше, растягивать задние дельты.`, media:[] },
+                      tech:`Не дожимать пик.\n\nЗадняя дельта в идеале должна работать без существенного движения лопаток — её очень сложно поймать. Плечи расслаблены максимально и уходят вперёд.\n\nЗадача: работать чётко задними дельтами. Ссутулиться, разобрать лопатки, выключить их вообще. Тянуть только локти вверх — думать о локтях вверх и вперёд, больше к ушам.\n\nВверх в сторону ушей по ощущениям — тогда это будет чётко в стороны.\n\nВниз нужно именно «отпустить» (не сделать движение вниз, а подконтрольно отпустить руки) и попытаться лопатками обнять лавку. Отпускать больше — растягивать задние дельты.`, media:[] },
   most:             { name:'Мост', weight:42.5, weightStep:0.25, weightUnit:'кг',
                       tech:`Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.`, media:[] },
   zhim_vert_platformy:{ name:'Жим вертикальной платформы', weight:50, weightStep:0.25, weightUnit:'кг',
@@ -515,7 +515,7 @@ const WORKOUTS = {
   ]},
   tue: { label:'ВТ', type:'home', title:'Домашняя', sections:[
     { label:'Основной блок', exercises:[
-      {id:'myachik',sets:1,reps:'3 положения'},{id:'lodochka',sets:3,time:40},
+      {id:'myachik',sets:1,reps:'3 пол. × 12'},{id:'lodochka',sets:3,time:40},
       {id:'obratnaya_planka',sets:3,time:40},{id:'vypady',sets:3,reps:12},
       {id:'rastyazhka_divana',sets:3,time:30,note:'на каждую ногу'},{id:'skladochka',sets:null,reps:null,note:'по ощущениям'}
     ]}
@@ -534,7 +534,7 @@ const WORKOUTS = {
   ]},
   thu: { label:'ЧТ', type:'home', title:'Домашняя', sections:[
     { label:'Основной блок', exercises:[
-      {id:'myachik',sets:1,reps:'3 положения'},{id:'lodochka',sets:3,time:40},
+      {id:'myachik',sets:1,reps:'3 пол. × 12'},{id:'lodochka',sets:3,time:40},
       {id:'obratnaya_planka',sets:3,time:40},{id:'vypady',sets:3,reps:12},
       {id:'vysokaya_planka',sets:3,time:90},{id:'stoika_na_rukah',sets:3,time:60}
     ]}
@@ -548,7 +548,7 @@ const WORKOUTS = {
     { label:'Конец тренировки', exercises:[{id:'vytyazhka_2',sets:2,reps:15}] }
   ]},
   sat: { label:'СБ', type:'home', title:'Мячик', sections:[
-    { label:'Упражнение', exercises:[{id:'myachik',sets:1,reps:'3 положения'}] }
+    { label:'Упражнение', exercises:[{id:'myachik',sets:1,reps:'3 пол. × 12'}] }
   ]}
 };
 
@@ -574,6 +574,7 @@ function loadState() {
     state.weightHistory = s.weightHistory || {};
     state.progressPhotos = s.progressPhotos || [];
     state.lastResetDate = s.lastResetDate || null;
+    state.completedSets = s.completedSets || {};
   } catch(e) {}
 
   Object.keys(EXERCISES).forEach(id => {
@@ -595,6 +596,7 @@ function saveState() {
       weightHistory: state.weightHistory,
       progressPhotos: state.progressPhotos,
       lastResetDate: state.lastResetDate,
+      completedSets: state.completedSets,
     }));
   } catch(e) {}
 }
@@ -602,6 +604,8 @@ function saveState() {
 // ============================================================
 // WEIGHT
 // ============================================================
+const weightDebounceTimers = {};
+
 function changeWeight(exId, delta, wEl) {
   const ex = EXERCISES[exId];
   const step = ex.weightStep || 0.25;
@@ -609,15 +613,25 @@ function changeWeight(exId, delta, wEl) {
   const newVal = Math.round((cur + delta * step) * 100) / 100;
   if (newVal < 0) return;
 
-  const today = new Date().toISOString().slice(0,10);
-  if (!state.weightHistory[exId]) state.weightHistory[exId] = [];
-  const hist = state.weightHistory[exId];
-  if (hist.length && hist[hist.length-1].date === today) hist[hist.length-1].weight = newVal;
-  else hist.push({ date: today, weight: newVal });
-
   state.weights[exId] = newVal;
-  saveState();
   if (wEl) wEl.textContent = newVal + ' ' + (ex.weightUnit || 'кг');
+
+  // Save weight immediately but debounce history recording (1.5s after last change)
+  clearTimeout(weightDebounceTimers[exId]);
+  weightDebounceTimers[exId] = setTimeout(() => {
+    const today = new Date().toISOString().slice(0,10);
+    if (!state.weightHistory[exId]) state.weightHistory[exId] = [];
+    const hist = state.weightHistory[exId];
+    if (hist.length && hist[hist.length-1].date === today) {
+      hist[hist.length-1].weight = state.weights[exId];
+    } else {
+      hist.push({ date: today, weight: state.weights[exId] });
+    }
+    saveState();
+  }, 1500);
+
+  // Save weight itself right away
+  saveState();
 }
 
 // ============================================================

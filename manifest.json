@@ -1,7 +1,7 @@
 {
-  "name": "Набор — Тренировки",
-  "short_name": "Набор",
-  "description": "Личный трекер тренировок: план на 6 дней, веса с историей, техника упражнений, прогресс-фото",
+  "name": "Gym",
+  "short_name": "Gym",
+  "description": "Personal workout tracker PWA — 6-day training plan, weight tracking with history, exercise technique notes, media attachments, and progress photo comparison",
   "start_url": "/workout-app/",
   "display": "standalone",
   "background_color": "#0f0f13",
