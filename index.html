@@ -301,14 +301,23 @@
   .photo-thumb:hover { border-color: var(--accent2); }
   .photo-delete-btn {
     position: absolute; top: 4px; right: 4px;
-    width: 22px; height: 22px;
-    background: rgba(255,107,107,0.9); border: none; border-radius: 50%;
-    color: white; font-size: 12px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 2; opacity: 0; transition: opacity 0.2s;
+    width: 24px; height: 24px;
+    background: var(--accent3); border: none; border-radius: 50%;
+    color: white; font-size: 13px; font-weight: 700; cursor: pointer;
+    display: none; align-items: center; justify-content: center;
+    z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
   }
-  .photo-thumb-wrap:hover .photo-delete-btn,
-  .photo-thumb-wrap.edit-mode .photo-delete-btn { opacity: 1; }
+  .gallery-edit-mode .photo-delete-btn { display: flex; }
+  .gallery-edit-mode .photo-thumb { border-color: var(--border); }
+  .edit-gallery-btn {
+    font-size: 11px; color: var(--text3);
+    background: none; border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 12px;
+    cursor: pointer; transition: all 0.2s;
+    font-family: 'Golos Text', sans-serif;
+    margin-bottom: 14px;
+  }
+  .edit-gallery-btn.active { color: var(--accent3); border-color: var(--accent3); }
   .photo-view-label { font-size: 10px; color: var(--text3); }
 
   .compare-tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; scrollbar-width: none; }
@@ -337,6 +346,71 @@
     width: 100%; aspect-ratio: 3/4; background: var(--surface2); border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     color: var(--text3); font-size: 12px; text-align: center; padding: 10px;
+  }
+  .open-compare-btn {
+    display: block; width: 100%;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px;
+    color: var(--text2); font-family: 'Golos Text', sans-serif; font-size: 13px;
+    cursor: pointer; text-align: center; margin-top: 4px; margin-bottom: 12px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .open-compare-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* FULLSCREEN COMPARE */
+  .compare-fs {
+    display: none; position: fixed; inset: 0;
+    background: #000; z-index: 600;
+    flex-direction: column;
+    touch-action: none;
+  }
+  .compare-fs.open { display: flex; }
+  .compare-fs-header {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 16px 12px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+    z-index: 10;
+  }
+  .compare-fs-label {
+    font-family: 'Unbounded', sans-serif; font-size: 12px; font-weight: 600;
+    color: white; letter-spacing: 0.05em;
+  }
+  .compare-fs-date { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+  .compare-fs-close {
+    background: rgba(255,255,255,0.15); border: none; color: white;
+    width: 36px; height: 36px; border-radius: 50%; font-size: 18px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .compare-fs-track {
+    flex: 1; display: flex; transition: transform 0.3s ease;
+    will-change: transform;
+  }
+  .compare-fs-slide {
+    flex-shrink: 0; width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .compare-fs-slide img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    transform-origin: center center;
+    transition: transform 0.1s;
+    user-select: none; -webkit-user-select: none;
+  }
+  .compare-fs-dots {
+    position: absolute; bottom: 24px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 8px; z-index: 10;
+  }
+  .compare-fs-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.35); transition: background 0.2s;
+  }
+  .compare-fs-dot.active { background: white; }
+  .compare-fs-hint {
+    position: absolute; bottom: 44px; left: 0; right: 0;
+    text-align: center; font-size: 11px; color: rgba(255,255,255,0.4);
+    z-index: 10; pointer-events: none;
   }
   .date-select-row { display: flex; gap: 8px; margin-bottom: 12px; }
   .date-select {
@@ -452,13 +526,27 @@
   </div>
 </div>
 
+<!-- FULLSCREEN COMPARE -->
+<div class="compare-fs" id="compareFs">
+  <div class="compare-fs-header">
+    <div>
+      <div class="compare-fs-label" id="compareFsLabel">Сравнение</div>
+      <div class="compare-fs-date" id="compareFsDate"></div>
+    </div>
+    <button class="compare-fs-close" onclick="closeCompareFs()">✕</button>
+  </div>
+  <div class="compare-fs-track" id="compareFsTrack"></div>
+  <div class="compare-fs-hint" id="compareFsHint">← свайп →</div>
+  <div class="compare-fs-dots" id="compareFsDots"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 // ============================================================
 // EXERCISE DATABASE
 // ============================================================
-const APP_VERSION = '1.4';
+const APP_VERSION = '1.6';
 
 const EXERCISES = {
   ikry:             { name:'Икры сидя в тренажёре', weight:30, weightStep:0.25, weightUnit:'кг', tech:'Максимальный акцент на растяжении и подъём с давлением на сустав большого пальца.', media:[] },
@@ -970,13 +1058,24 @@ function renderProgress() {
   state.compareMode==='gallery' ? renderGallery(content) : renderCompare(content);
 }
 
+let galleryEditMode = false;
+
+function toggleGalleryEdit() {
+  galleryEditMode = !galleryEditMode;
+  const btn = document.getElementById('editGalleryBtn');
+  const grid = document.getElementById('galleryGrid');
+  if (btn) { btn.textContent = galleryEditMode ? '✓ Готово' : '✎ Удалить фото'; btn.classList.toggle('active', galleryEditMode); }
+  if (grid) grid.classList.toggle('gallery-edit-mode', galleryEditMode);
+}
+
 function renderGallery(container) {
   const photos = state.progressPhotos;
-  if (!photos.length) { container.innerHTML=`<div class="progress-empty"><div class="big-icon">📸</div><p>Добавь первое фото прогресса</p></div>`; return; }
+  if (!photos.length) { container.innerHTML=`<div class="progress-empty"><div class="big-icon">📸</div><p>Добавь первое фото прогресса</p></div>`; galleryEditMode=false; return; }
   const byDate={};
   photos.forEach(p=>{(byDate[p.date]=byDate[p.date]||[]).push(p);});
   const vL={front:'Анфас',side:'Профиль',back:'Спина'};
-  let html='';
+  let html=`<button class="edit-gallery-btn ${galleryEditMode?'active':''}" id="editGalleryBtn" onclick="toggleGalleryEdit()">${galleryEditMode?'✓ Готово':'✎ Удалить фото'}</button>`;
+  html+=`<div id="galleryGrid" class="${galleryEditMode?'gallery-edit-mode':''}">`;
   Object.keys(byDate).sort().reverse().forEach(date=>{
     html+=`<div class="photo-date-group"><div class="photo-date-label">${formatDateRU(date)}</div><div class="photo-row">`;
     ['front','side','back'].forEach(v=>{
@@ -985,6 +1084,7 @@ function renderGallery(container) {
     });
     html+=`</div></div>`;
   });
+  html+=`</div>`;
   container.innerHTML=html;
 }
 
@@ -1026,12 +1126,156 @@ function renderCompare(container) {
   container.innerHTML=pairHTML(left,right,lL,rL);
 }
 
-function pairHTML(left,right,lL,rL){
-  function slot(p,label){
-    if(!p) return `<div class="compare-photo-wrap"><div class="compare-empty-slot">Нет фото</div><div class="compare-label">${label}</div></div>`;
-    return `<div class="compare-photo-wrap"><img class="compare-photo" src="${p.src}" onclick="openProgressLightbox('${p.id}')"><div class="compare-label">${label}<br><span style="color:var(--text3);font-size:10px">${formatDateShortRU(p.date)}</span></div></div>`;
+function pairHTML(left, right, lL, rL) {
+  function slot(p, label) {
+    if (!p) return `<div class="compare-photo-wrap"><div class="compare-empty-slot">Нет фото</div><div class="compare-label">${label}</div></div>`;
+    return `<div class="compare-photo-wrap">
+      <img class="compare-photo" src="${p.src}" onclick="openCompareFs()">
+      <div class="compare-label">${label}<br><span style="color:var(--text3);font-size:10px">${formatDateShortRU(p.date)}</span></div>
+    </div>`;
   }
-  return `<div class="compare-pair">${slot(left,lL)}${slot(right,rL)}</div>`;
+  const hasTwo = left && right;
+  const btnHTML = hasTwo
+    ? `<button class="open-compare-btn" onclick="openCompareFs()">🔍 Открыть сравнение на весь экран</button>`
+    : '';
+  // Store for fullscreen use
+  window._compareLeft = left;
+  window._compareRight = right;
+  window._compareLeftLabel = lL;
+  window._compareRightLabel = rL;
+  return `<div class="compare-pair">${slot(left,lL)}${slot(right,rL)}</div>${btnHTML}`;
+}
+
+// ============================================================
+// FULLSCREEN COMPARE
+// ============================================================
+let cfsIndex = 0;
+let cfsPhotos = [];
+let cfsLabels = [];
+let cfsTouchStartX = 0;
+let cfsTouchStartY = 0;
+let cfsZoomScale = 1;
+let cfsPinchStartDist = 0;
+
+function openCompareFs() {
+  const left = window._compareLeft;
+  const right = window._compareRight;
+  if (!left && !right) return;
+
+  cfsPhotos = [left, right].filter(Boolean);
+  cfsLabels = [window._compareLeftLabel, window._compareRightLabel].filter((l,i) => cfsPhotos[i]);
+  cfsIndex = 0;
+  cfsZoomScale = 1;
+
+  // Build slides
+  const track = document.getElementById('compareFsTrack');
+  track.innerHTML = cfsPhotos.map((p, i) =>
+    `<div class="compare-fs-slide" id="cfsSlide${i}">
+      <img src="${p.src}" id="cfsImg${i}" draggable="false">
+    </div>`
+  ).join('');
+
+  updateCfsUI();
+  document.getElementById('compareFs').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Hide swipe hint after 2s
+  setTimeout(() => {
+    const hint = document.getElementById('compareFsHint');
+    if (hint) hint.style.opacity = '0';
+  }, 2000);
+
+  setupCfsTouch();
+}
+
+function closeCompareFs() {
+  document.getElementById('compareFs').classList.remove('open');
+  document.body.style.overflow = '';
+  cfsZoomScale = 1;
+}
+
+function updateCfsUI() {
+  // Move track
+  const track = document.getElementById('compareFsTrack');
+  track.style.transform = `translateX(-${cfsIndex * 100}vw)`;
+
+  // Label + date
+  const p = cfsPhotos[cfsIndex];
+  document.getElementById('compareFsLabel').textContent = cfsLabels[cfsIndex] || '';
+  document.getElementById('compareFsDate').textContent = p ? formatDateRU(p.date) : '';
+
+  // Dots
+  const dots = document.getElementById('compareFsDots');
+  dots.innerHTML = cfsPhotos.map((_, i) =>
+    `<div class="compare-fs-dot ${i === cfsIndex ? 'active' : ''}"></div>`
+  ).join('');
+}
+
+function setupCfsTouch() {
+  const fs = document.getElementById('compareFs');
+
+  fs.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      cfsPinchStartDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      return;
+    }
+    cfsTouchStartX = e.touches[0].clientX;
+    cfsTouchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  fs.addEventListener('touchmove', e => {
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const newScale = Math.min(5, Math.max(1, cfsZoomScale * (dist / cfsPinchStartDist)));
+      const img = document.getElementById('cfsImg' + cfsIndex);
+      if (img) img.style.transform = `scale(${newScale})`;
+      cfsPinchStartDist = dist;
+      cfsZoomScale = newScale;
+      e.preventDefault();
+      return;
+    }
+  }, { passive: false });
+
+  fs.addEventListener('touchend', e => {
+    if (e.changedTouches.length === 1 && e.touches.length === 0) {
+      const dx = e.changedTouches[0].clientX - cfsTouchStartX;
+      const dy = Math.abs(e.changedTouches[0].clientY - cfsTouchStartY);
+
+      // Only swipe if not zoomed and horizontal swipe
+      if (cfsZoomScale <= 1 && Math.abs(dx) > 50 && Math.abs(dx) > dy) {
+        if (dx < 0 && cfsIndex < cfsPhotos.length - 1) {
+          cfsIndex++;
+          cfsZoomScale = 1;
+          const img = document.getElementById('cfsImg' + (cfsIndex - 1));
+          if (img) img.style.transform = 'scale(1)';
+        } else if (dx > 0 && cfsIndex > 0) {
+          cfsIndex--;
+          cfsZoomScale = 1;
+          const img = document.getElementById('cfsImg' + (cfsIndex + 1));
+          if (img) img.style.transform = 'scale(1)';
+        }
+        updateCfsUI();
+      }
+    }
+  }, { passive: true });
+
+  // Double tap to reset zoom
+  let lastTap = 0;
+  fs.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      cfsZoomScale = 1;
+      const img = document.getElementById('cfsImg' + cfsIndex);
+      if (img) img.style.transform = 'scale(1)';
+    }
+    lastTap = now;
+  }, { passive: true });
 }
 
 async function deletePhoto(id) {
