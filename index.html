@@ -423,6 +423,7 @@
     <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px">
       <div>
         <div style="font-size:12px;color:var(--text2);margin-bottom:6px">Дата съёмки</div>
+        <div id="photoDateHint" style="font-size:11px;color:var(--accent);margin-bottom:6px;min-height:16px"></div>
         <input type="date" id="photoDate" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Golos Text',sans-serif;font-size:14px;padding:10px 12px;outline:none">
       </div>
       <div>
@@ -572,7 +573,6 @@ function loadState() {
     const s = JSON.parse(localStorage.getItem('workout_v3') || '{}');
     state.weights = s.weights || {};
     state.weightHistory = s.weightHistory || {};
-    state.progressPhotos = s.progressPhotos || [];
     state.lastResetDate = s.lastResetDate || null;
     state.completedSets = s.completedSets || {};
   } catch(e) {}
@@ -581,10 +581,11 @@ function loadState() {
     if (!(id in state.weights)) state.weights[id] = EXERCISES[id].weight ?? null;
   });
 
-  const today = new Date().toISOString().slice(0,10);
-  if (state.lastResetDate !== today) {
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  if (state.lastResetDate !== todayStr) {
     state.completedSets = {};
-    state.lastResetDate = today;
+    state.lastResetDate = todayStr;
     saveState();
   }
 }
@@ -594,7 +595,6 @@ function saveState() {
     localStorage.setItem('workout_v3', JSON.stringify({
       weights: state.weights,
       weightHistory: state.weightHistory,
-      progressPhotos: state.progressPhotos,
       lastResetDate: state.lastResetDate,
       completedSets: state.completedSets,
     }));
@@ -876,6 +876,80 @@ function switchScreen(screen, btn) {
 // ============================================================
 // PROGRESS
 // ============================================================
+// ============================================================
+// INDEXEDDB для фото прогресса
+// ============================================================
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    if (db) { resolve(db); return; }
+    const req = indexedDB.open('gym_photos_v1', 1);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('photos')) {
+        d.createObjectStore('photos', { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbSavePhoto(photo) {
+  const d = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = d.transaction('photos', 'readwrite');
+    tx.objectStore('photos').put(photo);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function dbDeletePhoto(id) {
+  const d = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = d.transaction('photos', 'readwrite');
+    tx.objectStore('photos').delete(id);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function dbLoadAllPhotos() {
+  const d = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = d.transaction('photos', 'readonly');
+    const req = tx.objectStore('photos').getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// Parse date from filename like "20260315_143022" or "20260315143022"
+// Returns "yyyy-mm-dd" or null
+function parseDateFromFilename(filename) {
+  const m = filename.match(/(\d{4})(\d{2})(\d{2})[_\-]?(\d{2})(\d{2})(\d{2})/);
+  if (!m) return null;
+  const y = m[1], mo = m[2], d = m[3];
+  // Basic sanity check
+  if (parseInt(mo) < 1 || parseInt(mo) > 12) return null;
+  if (parseInt(d) < 1 || parseInt(d) > 31) return null;
+  return `${y}-${mo}-${d}`;
+}
+
+// Format date string "yyyy-mm-dd" for display without timezone shift
+function formatDateRU(dateStr) {
+  const [y, m, d] = dateStr.split('-');
+  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+}
+function formatDateShortRU(dateStr) {
+  const [y, m, d] = dateStr.split('-');
+  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+}
+
 function renderProgress() {
   const content = document.getElementById('progressContent');
   state.compareMode==='gallery' ? renderGallery(content) : renderCompare(content);
@@ -889,8 +963,7 @@ function renderGallery(container) {
   const vL={front:'Анфас',side:'Профиль',back:'Спина'};
   let html='';
   Object.keys(byDate).sort().reverse().forEach(date=>{
-    const dStr=new Date(date).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
-    html+=`<div class="photo-date-group"><div class="photo-date-label">${dStr}</div><div class="photo-row">`;
+    html+=`<div class="photo-date-group"><div class="photo-date-label">${formatDateRU(date)}</div><div class="photo-row">`;
     ['front','side','back'].forEach(v=>{
       const p=byDate[date].find(x=>x.view===v);
       if(p) html+=`<div class="photo-thumb-wrap"><img class="photo-thumb" src="${p.src}" onclick="openProgressLightbox('${p.id}')"><div class="photo-view-label">${vL[v]}</div></div>`;
@@ -908,13 +981,13 @@ function renderCompare(container) {
 
   if(state.compareMode==='custom'){
     const dates=[...new Set(state.progressPhotos.map(p=>p.date))].sort();
-    const opts=dates.map(d=>`<option value="${d}">${new Date(d).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})}</option>`).join('');
+    const opts=dates.map(d=>`<option value="${d}">${formatDateRU(d)}</option>`).join('');
     const selL=container.querySelector('#customLeft')?.value||'';
     const selR=container.querySelector('#customRight')?.value||'';
     const left=selL?filtered.find(p=>p.date===selL):null;
     const right=selR?filtered.find(p=>p.date===selR):null;
-    const lL=selL?new Date(selL).toLocaleDateString('ru-RU',{day:'numeric',month:'short'}):'Дата 1';
-    const rL=selR?new Date(selR).toLocaleDateString('ru-RU',{day:'numeric',month:'short'}):'Дата 2';
+    const lL=selL?formatDateShortRU(selL):'Дата 1';
+    const rL=selR?formatDateShortRU(selR):'Дата 2';
     container.innerHTML=`<div class="date-select-row">
       <select class="date-select" id="customLeft" onchange="renderProgress()"><option value="">Дата 1</option>${opts}</select>
       <select class="date-select" id="customRight" onchange="renderProgress()"><option value="">Дата 2</option>${opts}</select>
@@ -929,8 +1002,9 @@ function renderCompare(container) {
     left=filtered[0]; right=filtered[filtered.length-1]; lL='Начало'; rL='Сейчас';
   } else {
     right=filtered[filtered.length-1];
-    const wa=new Date(right.date); wa.setDate(wa.getDate()-7);
-    const waS=wa.toISOString().slice(0,10);
+    // subtract 7 days purely via string math to avoid timezone issues
+    const rd=new Date(right.date+'T12:00:00'); rd.setDate(rd.getDate()-7);
+    const waS=rd.toISOString().slice(0,10);
     left=filtered.reduce((b,p)=>p.date<=waS?p:b,null)||(filtered.length>1?filtered[filtered.length-2]:filtered[0]);
     lL='~Неделю назад'; rL='Сейчас';
   }
@@ -940,8 +1014,7 @@ function renderCompare(container) {
 function pairHTML(left,right,lL,rL){
   function slot(p,label){
     if(!p) return `<div class="compare-photo-wrap"><div class="compare-empty-slot">Нет фото</div><div class="compare-label">${label}</div></div>`;
-    const d=new Date(p.date).toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'});
-    return `<div class="compare-photo-wrap"><img class="compare-photo" src="${p.src}" onclick="openProgressLightbox('${p.id}')"><div class="compare-label">${label}<br><span style="color:var(--text3);font-size:10px">${d}</span></div></div>`;
+    return `<div class="compare-photo-wrap"><img class="compare-photo" src="${p.src}" onclick="openProgressLightbox('${p.id}')"><div class="compare-label">${label}<br><span style="color:var(--text3);font-size:10px">${formatDateShortRU(p.date)}</span></div></div>`;
   }
   return `<div class="compare-pair">${slot(left,lL)}${slot(right,rL)}</div>`;
 }
@@ -957,13 +1030,24 @@ function openProgressLightbox(id){
 
 let pendingFiles=[];
 document.getElementById('uploadZone').addEventListener('click',()=>document.getElementById('progressFileInput').click());
-document.getElementById('progressFileInput').addEventListener('change',function(){
-  pendingFiles=Array.from(this.files);
-  if(!pendingFiles.length) return;
-  document.getElementById('photoDate').value=new Date().toISOString().slice(0,10);
+document.getElementById('progressFileInput').addEventListener('change', function(){
+  pendingFiles = Array.from(this.files);
+  if (!pendingFiles.length) return;
+  this.value = '';
+
+  // Try to parse date from first file's name
+  const parsedDate = parseDateFromFilename(pendingFiles[0].name);
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  document.getElementById('photoDate').value = parsedDate || todayStr;
+
+  // Show/hide date field hint
+  const hint = document.getElementById('photoDateHint');
+  if (hint) hint.textContent = parsedDate ? `📅 Дата из имени файла: ${formatDateRU(parsedDate)}` : '📅 Дата не найдена в имени файла — проверь вручную';
+
   document.querySelectorAll('#viewPickRow .view-chip').forEach((b,i)=>b.classList.toggle('active',i===0));
   document.getElementById('photoMetaModal').classList.add('open');
-  this.value='';
 });
 
 function pickView(btn){
@@ -971,21 +1055,59 @@ function pickView(btn){
   btn.classList.add('active');
 }
 
-function savePhotoMeta(){
-  const date=document.getElementById('photoDate').value;
-  const view=document.querySelector('#viewPickRow .view-chip.active')?.getAttribute('data-pick')||'front';
-  const views=['front','side','back'];
-  let done=0;
-  pendingFiles.forEach((file,i)=>{
-    const reader=new FileReader();
-    reader.onload=e=>{
-      state.progressPhotos.push({id:Date.now()+'_'+i,src:e.target.result,date,view:pendingFiles.length>1?views[i%3]:view});
-      if(++done===pendingFiles.length){saveState();renderProgress();showToast(`Добавлено ${done} фото`);}
+async function savePhotoMeta(){
+  const date = document.getElementById('photoDate').value;
+  const view = document.querySelector('#viewPickRow .view-chip.active')?.getAttribute('data-pick')||'front';
+  const views = ['front','side','back'];
+  document.getElementById('photoMetaModal').classList.remove('open');
+
+  let done = 0;
+  for (let i = 0; i < pendingFiles.length; i++) {
+    const file = pendingFiles[i];
+    const reader = new FileReader();
+    reader.onload = async e => {
+      const photo = {
+        id: Date.now() + '_' + i,
+        src: e.target.result,
+        date,
+        view: pendingFiles.length > 1 ? views[i % 3] : view
+      };
+      // Save to IndexedDB
+      await dbSavePhoto(photo);
+      // Add to in-memory list (src only for display, not in localStorage)
+      state.progressPhotos.push(photo);
+      if (++done === pendingFiles.length) {
+        // Save only metadata (no src) to localStorage as index
+        savePhotoIndex();
+        renderProgress();
+        showToast(`Добавлено ${done} фото`);
+      }
     };
     reader.readAsDataURL(file);
-  });
-  document.getElementById('photoMetaModal').classList.remove('open');
-  pendingFiles=[];
+  }
+  pendingFiles = [];
+}
+
+// Save photo metadata index (without src) to localStorage
+function savePhotoIndex() {
+  try {
+    const index = state.progressPhotos.map(p => ({ id: p.id, date: p.date, view: p.view }));
+    localStorage.setItem('gym_photo_index', JSON.stringify(index));
+  } catch(e) {}
+}
+
+// Load photos: index from localStorage, src from IndexedDB
+async function loadPhotos() {
+  try {
+    const index = JSON.parse(localStorage.getItem('gym_photo_index') || '[]');
+    if (!index.length) return;
+    const allFromDB = await dbLoadAllPhotos();
+    const byId = {};
+    allFromDB.forEach(p => byId[p.id] = p);
+    state.progressPhotos = index.map(meta => byId[meta.id]).filter(Boolean);
+  } catch(e) {
+    state.progressPhotos = [];
+  }
 }
 
 document.getElementById('compareTabs').addEventListener('click',e=>{
@@ -1024,6 +1146,14 @@ loadState();
 renderDayTabs();
 const todayMap={0:'sat',1:'mon',2:'tue',3:'wed',4:'thu',5:'fri',6:'sat'};
 selectDay(WORKOUTS[todayMap[new Date().getDay()]] ? todayMap[new Date().getDay()] : 'mon');
+
+// Load photos from IndexedDB asynchronously
+loadPhotos().then(() => {
+  // If progress tab is already active, re-render it
+  if (document.getElementById('screen-progress').classList.contains('active')) {
+    renderProgress();
+  }
+}).catch(e => console.error('Photo load error:', e));
 </script>
 </body>
 </html>
