@@ -412,7 +412,34 @@
     text-align: center; font-size: 11px; color: rgba(255,255,255,0.4);
     z-index: 10; pointer-events: none;
   }
-  .date-select-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .measurements-block {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-top: 10px;
+  }
+  .measurements-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .measurements-title { font-size: 11px; color: var(--text3); font-family: 'Unbounded', sans-serif; letter-spacing: 0.08em; }
+  .measurements-edit-btn {
+    font-size: 11px; color: var(--text3); background: none; border: none;
+    cursor: pointer; padding: 2px 6px; border-radius: 6px;
+    transition: color 0.2s;
+  }
+  .measurements-edit-btn:hover { color: var(--accent); }
+  .measurements-text {
+    font-size: 13px; color: var(--text2); line-height: 1.6; white-space: pre-wrap;
+    min-height: 20px;
+  }
+  .measurements-empty { font-size: 12px; color: var(--text3); font-style: italic; }
+  .measurements-textarea {
+    width: 100%; background: var(--surface3); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: 'Golos Text', sans-serif;
+    font-size: 13px; padding: 10px; outline: none; resize: none;
+    line-height: 1.6; min-height: 80px;
+  }
   .date-select {
     flex: 1; background: var(--surface2); border: 1px solid var(--border);
     border-radius: var(--radius-sm); color: var(--text);
@@ -473,6 +500,10 @@
   <div class="upload-zone" id="uploadZone">
     <div style="font-size:30px">📸</div>
     <p>Добавить фото прогресса</p>
+  </div>
+  <div class="upload-zone" id="addMeasurementsZone" style="margin-top:0" onclick="addMeasurementsForDate()">
+    <div style="font-size:26px">📏</div>
+    <p>Добавить замеры без фото</p>
   </div>
   <input type="file" id="progressFileInput" accept="image/*" multiple>
 </div>
@@ -543,60 +574,40 @@
 <div class="toast" id="toast"></div>
 
 <script>
+
+const APP_VERSION = '1.8';
+
 // ============================================================
 // EXERCISE DATABASE
 // ============================================================
-// version moved below
-
 const EXERCISES = {
   ikry:             { name:'Икры сидя в тренажёре', weight:30, weightStep:0.25, weightUnit:'кг', tech:'Максимальный акцент на растяжении и подъём с давлением на сустав большого пальца.', media:[] },
-  press:            { name:'Пресс в тренажёре', weight:22.5, weightStep:0.25, weightUnit:'кг',
-                      tech:'Напрячь пресс и вдавить поясницу — стараться не отрывать её от плоскости тренажёра на всём протяжении подходов.', media:[] },
+  press:            { name:'Пресс в тренажёре', weight:22.5, weightStep:0.25, weightUnit:'кг', tech:'Напрячь пресс и вдавить поясницу — стараться не отрывать её от плоскости тренажёра на всём протяжении подходов.', media:[] },
   v_podyomy:        { name:'V-подъёмы', weight:2, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
-  pulover:          { name:'Пуловер с гантелью поперёк скамьи', weight:7, weightStep:0.25, weightUnit:'кг',
-                      tech:`Прямой угол в коленях. Разобрать рёбра, растянуть лопатки. Наверх — максимально собраться, собрать рёбра, пресс. Корпус параллельно полу.\n\nПодкручивать копчик и сокращать пресс — в верхней точке рёбра приблизить к тазовым костям.\n\nСуть: удерживать лопатками и зубчатыми, сопротивляясь весу и гравитации.\n\nМедленное подконтрольное опускание гантели за голову на почти прямых руках (локти мягкие и развёрнуты; запястье не ниже локтя).`, media:[] },
-  vytyazhka_1:      { name:'Горизонтальная вытяжка по 1 руке', weight:27.5, weightStep:0.25, weightUnit:'кг',
-                      tech:`Начинать ложиться противоположной стороной от веса: сначала бок поясницы, потом бок грудного отдела и одна лопатка, потом одно плечо.\n\nВ последнюю очередь — положить второе плечо на пол и прижать вторую лопатку (та сторона, где вес).\n\nВверх на выдохе — всё наоборот: начинать вытягиваться стороной где вес.\n\nЗамедлиться везде минимум вдвое.`, media:[] },
-  vytyazhka_2:      { name:'Вытяжка с прямой палочкой двумя руками', weight:37.5, weightStep:0.25, weightUnit:'кг',
-                      tech:`Опускаться аккуратно с круглой спиной: сначала поясница, потом грудной отдел и лопатки, последними ложатся плечи.\n\nНа выдохе позволить себя вытянуть весу — корпусом тянуться вверх.\n\nВ верхней точке замирать на пару секунд и тянуться вверх.`, media:[] },
-  zhim_lezha:       { name:'Жим лёжа со штангой', weight:7.5, weightStep:0.25, weightUnit:'кг (блины)',
-                      tech:`Браться шире — прямой или чуть тупой угол в нижней точке между локтем и запястьем.\n\nПри снятии грифа проверни запястье вверх, чтобы гриф не лежал на суставе. Так хват будет жёстче и снимешь часть нагрузки с трицепса.`, media:[] },
-  tyaga_verh_parallel:{ name:'Тяга верхнего блока широким параллельным хватом', weight:27.5, weightStep:0.25, weightUnit:'кг',
-                      tech:`Не отпускать до конца. Спина и корпус — прямая линия с тросом, подкрутить копчик, напрячь пресс. Тянуть вниз чётко, в процессе отклоняться чуть.\n\nДвижение начинается со спины — тянуть спиной, руками лишь дотягивать и сокращать мышцы спины.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс сильно, чтобы рёбра не выпирали — сократить пресс так, чтобы рёбра были на одной линии с лобком. Это уберёт прогиб в пояснице.`, media:[] },
+  pulover:          { name:'Пуловер с гантелью поперёк скамьи', weight:7, weightStep:0.25, weightUnit:'кг', tech:'Прямой угол в коленях. Разобрать рёбра, растянуть лопатки. Наверх — максимально собраться, собрать рёбра, пресс. Корпус параллельно полу.\n\nПодкручивать копчик и сокращать пресс — в верхней точке рёбра приблизить к тазовым костям.\n\nСуть: удерживать лопатками и зубчатыми, сопротивляясь весу и гравитации.\n\nМедленное подконтрольное опускание гантели за голову на почти прямых руках (локти мягкие и развёрнуты; запястье не ниже локтя).', media:[] },
+  vytyazhka_1:      { name:'Горизонтальная вытяжка по 1 руке', weight:27.5, weightStep:0.25, weightUnit:'кг', tech:'Начинать ложиться противоположной стороной от веса: сначала бок поясницы, потом бок грудного отдела и одна лопатка, потом одно плечо.\n\nВ последнюю очередь — положить второе плечо на пол и прижать вторую лопатку (та сторона, где вес).\n\nВверх на выдохе — всё наоборот: начинать вытягиваться стороной где вес.\n\nЗамедлиться везде минимум вдвое.', media:[] },
+  vytyazhka_2:      { name:'Вытяжка с прямой палочкой двумя руками', weight:37.5, weightStep:0.25, weightUnit:'кг', tech:'Опускаться аккуратно с круглой спиной: сначала поясница, потом грудной отдел и лопатки, последними ложатся плечи.\n\nНа выдохе позволить себя вытянуть весу — корпусом тянуться вверх.\n\nВ верхней точке замирать на пару секунд.', media:[] },
+  zhim_lezha:       { name:'Жим лёжа со штангой', weight:7.5, weightStep:0.25, weightUnit:'кг (блины)', tech:'Браться шире — прямой или чуть тупой угол в нижней точке между локтем и запястьем.\n\nПри снятии грифа проверни запястье вверх, чтобы гриф не лежал на суставе. Так хват будет жёстче и снимешь часть нагрузки с трицепса.', media:[] },
+  tyaga_verh_parallel: { name:'Тяга верхнего блока широким параллельным хватом', weight:27.5, weightStep:0.25, weightUnit:'кг', tech:'Не отпускать до конца. Спина и корпус — прямая линия с тросом, подкрутить копчик, напрячь пресс. Тянуть вниз чётко, в процессе отклоняться чуть.\n\nДвижение начинается со спины — тянуть спиной, руками лишь дотягивать.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс сильно: рёбра на одной линии с лобком.', media:[] },
   otzhimaniya:      { name:'Отжимания', weight:null, weightStep:null, weightUnit:'', weightDisplay:'макс', tech:'', media:[] },
   prised_ganteli:   { name:'Присед с гантелью на бёдрах и блинами под пятки', weight:15, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
-  yagodichny_most:  { name:'Ягодичный мост в тренажёре', weight:42.5, weightStep:0.25, weightUnit:'кг',
-                      tech:`Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.`, media:[] },
-  zhim_platformy:   { name:'Жим горизонтальной платформы высокой постановкой по 1 ноге', weight:25, weightStep:0.25, weightUnit:'кг',
-                      tech:`Поставить стопу на уровень груди. Плотно прижать поясницу, откинуться на спинке.\n\nПостановка ноги высокая, стопа на середине платформы. Стопу чуть ниже — буквально 3–5 см.\n\n2-ю ногу выпрямить и просунуть под дырку — пусть упирается в стену. Сгибание 2-й ноги перекашивает таз.`, media:[] },
-  podtyagivaniya:   { name:'Подтягивания в гравитроне', weight:19, weightStep:0.25, weightUnit:'кг противовес',
-                      tech:`Не снимать нагрузку со спины, не отпускать суставы до конца, не висеть.\n\nОпускаться до момента натяжения подмышками. Из этой точки — грудью вверх.\n\nОпускаться ещё чуть ниже — добиться растяжения и подтягиваться с растянутой позиции.`, media:[] },
-  tyaga_verh_klassik:{ name:'Тяга верхнего блока широким классическим хватом', weight:27.5, weightStep:0.25, weightUnit:'кг',
-                      tech:`Не отпускать до конца. Спина и корпус — прямая линия с тросом, подкрутить копчик, напрячь пресс. Тянуть вниз чётко, в процессе отклоняться чуть.\n\nДвижение начинается со спины — тянуть спиной, руками лишь дотягивать и сокращать мышцы спины.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс сильно, чтобы рёбра не выпирали — сократить пресс так, чтобы рёбра были на одной линии с лобком. Это уберёт прогиб в пояснице.`, media:[] },
-  tyaga_gor:        { name:'Тяга горизонтального блока', weight:27.5, weightStep:0.25, weightUnit:'кг',
-                      tech:`Не должно быть рывка руками. Руки к корпусу привести за счёт мышц спины.\n\nЧуть наклониться вперёд и сосредоточиться на том, чтобы при тяге на себя не отклонять назад корпус.`, media:[] },
-  zhimy_gantelei:   { name:'Жимы гантелей сидя от груди вверх на плечи', weight:7, weightStep:0.25, weightUnit:'кг',
-                      tech:`Когда опускаешь вниз — локти закручивать вперёд перед корпусом.`, media:[] },
+  yagodichny_most:  { name:'Ягодичный мост в тренажёре', weight:42.5, weightStep:0.25, weightUnit:'кг', tech:'Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.', media:[] },
+  zhim_platformy:   { name:'Жим горизонтальной платформы высокой постановкой по 1 ноге', weight:25, weightStep:0.25, weightUnit:'кг', tech:'Поставить стопу на уровень груди. Плотно прижать поясницу, откинуться на спинке.\n\nПостановка ноги высокая, стопа на середине платформы. Стопу чуть ниже — 3–5 см.\n\n2-ю ногу выпрямить и просунуть под дырку — пусть упирается в стену.', media:[] },
+  podtyagivaniya:   { name:'Подтягивания в гравитроне', weight:19, weightStep:0.25, weightUnit:'кг противовес', tech:'Не снимать нагрузку со спины, не отпускать суставы до конца, не висеть.\n\nОпускаться до момента натяжения подмышками. Из этой точки — грудью вверх.\n\nОпускаться ещё чуть ниже — добиться растяжения и подтягиваться с растянутой позиции.', media:[] },
+  tyaga_verh_klassik: { name:'Тяга верхнего блока широким классическим хватом', weight:27.5, weightStep:0.25, weightUnit:'кг', tech:'Не отпускать до конца. Спина и корпус — прямая линия с тросом, подкрутить копчик, напрячь пресс. Тянуть вниз чётко, в процессе отклоняться чуть.\n\nДвижение начинается со спины — тянуть спиной, руками лишь дотягивать.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс сильно: рёбра на одной линии с лобком.', media:[] },
+  tyaga_gor:        { name:'Тяга горизонтального блока', weight:27.5, weightStep:0.25, weightUnit:'кг', tech:'Не должно быть рывка руками. Руки к корпусу привести за счёт мышц спины.\n\nЧуть наклониться вперёд и сосредоточиться на том, чтобы при тяге на себя не отклонять назад корпус.', media:[] },
+  zhimy_gantelei:   { name:'Жимы гантелей сидя от груди вверх на плечи', weight:7, weightStep:0.25, weightUnit:'кг', tech:'Когда опускаешь вниз — локти закручивать вперёд перед корпусом.', media:[] },
   protyazhka:       { name:'Протяжка лёжа с нижнего блока кроссовера', weight:17.5, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
-  tyaga_delt:       { name:'Тяга гантелей на задние дельты', weight:7, weightStep:0.25, weightUnit:'кг',
-                      tech:`Не дожимать пик.\n\nЗадняя дельта в идеале должна работать без существенного движения лопаток — её очень сложно поймать. Плечи расслаблены максимально и уходят вперёд.\n\nЗадача: работать чётко задними дельтами. Ссутулиться, разобрать лопатки, выключить их вообще. Тянуть только локти вверх — думать о локтях вверх и вперёд, больше к ушам.\n\nВверх в сторону ушей по ощущениям — тогда это будет чётко в стороны.\n\nВниз нужно именно «отпустить» (не сделать движение вниз, а подконтрольно отпустить руки) и попытаться лопатками обнять лавку. Отпускать больше — растягивать задние дельты.`, media:[] },
-  most:             { name:'Мост', weight:42.5, weightStep:0.25, weightUnit:'кг',
-                      tech:`Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.`, media:[] },
-  zhim_vert_platformy:{ name:'Жим вертикальной платформы', weight:50, weightStep:0.25, weightUnit:'кг',
-                      tech:`Стопы на ширине плеч на верхнем крае платформы, носки чуть кнаружи.`, media:[] },
+  tyaga_delt:       { name:'Тяга гантелей на задние дельты', weight:7, weightStep:0.25, weightUnit:'кг', tech:'Не дожимать пик.\n\nЗадняя дельта должна работать без существенного движения лопаток. Ссутулиться, разобрать лопатки, выключить их вообще. Тянуть только локти вверх — думать о локтях вверх и к ушам.\n\nВниз — именно отпустить подконтрольно, попытаться лопатками обнять лавку. Отпускать больше, растягивать задние дельты.', media:[] },
+  most:             { name:'Мост', weight:42.5, weightStep:0.25, weightUnit:'кг', tech:'Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.', media:[] },
+  zhim_vert_platformy: { name:'Жим вертикальной платформы', weight:50, weightStep:0.25, weightUnit:'кг', tech:'Стопы на ширине плеч на верхнем крае платформы, носки чуть кнаружи.', media:[] },
   sshgivaniya:      { name:'Сшагивания с тумбы у опоры с весом в одной руке', weight:10, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
-  rumynskaya:       { name:'Румынская в смите', weight:null, weightStep:0.25, weightUnit:'кг', weightDisplay:'—',
-                      tech:`Держать спину прямо, отводить таз назад. Корпус идёт за весом для баланса.\n\nПримерно до уровня колена — подсогнуть колено, микроподсед, ещё отвести таз назад. Встать ягодицей.\n\nОт копчика до затылка — прямая линия. Сначала прижать подбородок, и только потом таз назад.`, media:[] },
-  glyut:            { name:'Глют', weight:20, weightStep:0.25, weightUnit:'кг',
-                      tech:`Упереть опорную ногу в подушку. Стопа чётко под тазом.\n\nДвижущуюся ногу — ближе к середине платформы, максимум по верху. Максимально подконтрольно сократить вниз и вытолкнуть ягодицей, не слишком высоко.\n\nСтопа чуть вбок, носок чуть наружу.`, media:[] },
-  razvedeniya:      { name:'Отведения с гантелью', weight:40, weightStep:0.25, weightUnit:'кг',
-                      tech:`Двинуть таз вперёд, ближе к краю подушки, угол корпуса тупой. Опереться на пятку.\n\nПриподнять таз на мм, еле касаться подушки.\n\nСледующий этап: вставать в мост, упираясь лопатками.`, media:[] },
-  myachik:          { name:'Мячик (3 положения)', weight:null, weightStep:null, weightUnit:'', weightDisplay:'',
-                      tech:`1-е положение — по верху лопаток.\n2-е положение — глубоко дышать и под собственной тяжестью опускаться (не через силу и боль).\n3-е положение — под нижней резинкой топа. Давить прессом поясницу в пол, не расслаблять кор.`, media:[] },
-  lodochka:         { name:'Лодочка (hollow hold)', weight:null, weightStep:null, weightUnit:'', weightDisplay:'',
-                      tech:`Поясница прижата к полу. Рёбра вниз. Таз слегка подкручен.`, media:[], isTime:true },
-  obratnaya_planka: { name:'Обратная планка с поднятием ног', weight:null, weightStep:null, weightUnit:'', weightDisplay:'',
-                      tech:`Таз слегка подкрутить. Собрать, опустить рёбра. Не прогибаться в пояснице.\n\nМежду рёбрами сократить мышцы — думать в сторону треугольника между рёбрами.`, media:[], isTime:true },
+  rumynskaya:       { name:'Румынская в смите', weight:null, weightStep:0.25, weightUnit:'кг', weightDisplay:'—', tech:'Держать спину прямо, отводить таз назад. Корпус идёт за весом для баланса.\n\nПримерно до уровня колена — подсогнуть колено, микроподсед, ещё отвести таз назад. Встать ягодицей.\n\nОт копчика до затылка — прямая линия. Сначала прижать подбородок, и только потом таз назад.', media:[] },
+  glyut:            { name:'Глют', weight:20, weightStep:0.25, weightUnit:'кг', tech:'Упереть опорную ногу в подушку. Стопа чётко под тазом.\n\nДвижущуюся ногу — ближе к середине платформы, максимум по верху. Максимально подконтрольно сократить вниз и вытолкнуть ягодицей, не слишком высоко.\n\nСтопа чуть вбок, носок чуть наружу.', media:[] },
+  razvedeniya:      { name:'Отведения с гантелью', weight:40, weightStep:0.25, weightUnit:'кг', tech:'Двинуть таз вперёд, ближе к краю подушки, угол корпуса тупой. Опереться на пятку.\n\nПриподнять таз на мм, еле касаться подушки.\n\nСледующий этап: вставать в мост, упираясь лопатками.', media:[] },
+  myachik:          { name:'Мячик (3 положения)', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'1-е положение — по верху лопаток.\n2-е положение — глубоко дышать и под собственной тяжестью опускаться (не через силу и боль).\n3-е положение — под нижней резинкой топа. Давить прессом поясницу в пол, не расслаблять кор.', media:[] },
+  lodochka:         { name:'Лодочка (hollow hold)', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'Поясница прижата к полу. Рёбра вниз. Таз слегка подкручен.', media:[], isTime:true },
+  obratnaya_planka: { name:'Обратная планка с поднятием ног', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'Таз слегка подкрутить. Собрать, опустить рёбра. Не прогибаться в пояснице.\n\nМежду рёбрами сократить мышцы — думать в сторону треугольника между рёбрами.', media:[], isTime:true },
   vypady:           { name:'Выпады (обычные и глубокие)', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[] },
   rastyazhka_divana:{ name:'Растяжка с дивана', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[], isTime:true },
   skladochka:       { name:'Складочка', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[] },
@@ -604,6 +615,9 @@ const EXERCISES = {
   stoika_na_rukah:  { name:'Стойка на руках у стены', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[], isTime:true }
 };
 
+// ============================================================
+// WORKOUT PLAN
+// ============================================================
 const WORKOUTS = {
   mon: { label:'ПН', type:'gym', title:'Фулбади', sections:[
     { label:'Начало тренировки', exercises:[{id:'ikry',sets:2,reps:15},{id:'press',sets:2,reps:12}] },
@@ -619,7 +633,7 @@ const WORKOUTS = {
   ]},
   tue: { label:'ВТ', type:'home', title:'Домашняя', sections:[
     { label:'Основной блок', exercises:[
-      {id:'myachik',sets:1,reps:'3 пол. × 12'},{id:'lodochka',sets:3,time:40},
+      {id:'myachik',sets:1,reps:'3 пол. x 12'},{id:'lodochka',sets:3,time:40},
       {id:'obratnaya_planka',sets:3,time:40},{id:'vypady',sets:3,reps:12},
       {id:'rastyazhka_divana',sets:3,time:30,note:'на каждую ногу'},{id:'skladochka',sets:null,reps:null,note:'по ощущениям'}
     ]}
@@ -638,7 +652,7 @@ const WORKOUTS = {
   ]},
   thu: { label:'ЧТ', type:'home', title:'Домашняя', sections:[
     { label:'Основной блок', exercises:[
-      {id:'myachik',sets:1,reps:'3 пол. × 12'},{id:'lodochka',sets:3,time:40},
+      {id:'myachik',sets:1,reps:'3 пол. x 12'},{id:'lodochka',sets:3,time:40},
       {id:'obratnaya_planka',sets:3,time:40},{id:'vypady',sets:3,reps:12},
       {id:'vysokaya_planka',sets:3,time:90},{id:'stoika_na_rukah',sets:3,time:60}
     ]}
@@ -652,7 +666,7 @@ const WORKOUTS = {
     { label:'Конец тренировки', exercises:[{id:'vytyazhka_2',sets:2,reps:15}] }
   ]},
   sat: { label:'СБ', type:'home', title:'Мячик', sections:[
-    { label:'Упражнение', exercises:[{id:'myachik',sets:1,reps:'3 пол. × 12'}] }
+    { label:'Упражнение', exercises:[{id:'myachik',sets:1,reps:'3 пол. x 12'}] }
   ]}
 };
 
@@ -664,6 +678,7 @@ const DAYS_ORDER = ['mon','tue','wed','thu','fri','sat'];
 let state = {
   currentDay: 'mon',
   weights: {}, weightHistory: {},
+  measurements: {},
   media: {},
   completedSets: {},
   lastResetDate: null,
@@ -671,24 +686,29 @@ let state = {
   compareMode: 'all', compareView: 'front',
 };
 
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
 function loadState() {
   try {
     const s = JSON.parse(localStorage.getItem('workout_v3') || '{}');
-    state.weights = s.weights || {};
-    state.weightHistory = s.weightHistory || {};
-    state.lastResetDate = s.lastResetDate || null;
-    state.completedSets = s.completedSets || {};
+    state.weights      = s.weights      || {};
+    state.weightHistory= s.weightHistory|| {};
+    state.measurements = s.measurements || {};
+    state.lastResetDate= s.lastResetDate|| null;
+    state.completedSets= s.completedSets|| {};
   } catch(e) {}
 
-  Object.keys(EXERCISES).forEach(id => {
-    if (!(id in state.weights)) state.weights[id] = EXERCISES[id].weight ?? null;
+  Object.keys(EXERCISES).forEach(function(id) {
+    if (!(id in state.weights)) state.weights[id] = EXERCISES[id].weight != null ? EXERCISES[id].weight : null;
   });
 
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-  if (state.lastResetDate !== todayStr) {
+  const today = todayStr();
+  if (state.lastResetDate !== today) {
     state.completedSets = {};
-    state.lastResetDate = todayStr;
+    state.lastResetDate = today;
     saveState();
   }
 }
@@ -696,44 +716,49 @@ function loadState() {
 function saveState() {
   try {
     localStorage.setItem('workout_v3', JSON.stringify({
-      weights: state.weights,
+      weights:       state.weights,
       weightHistory: state.weightHistory,
+      measurements:  state.measurements,
       lastResetDate: state.lastResetDate,
       completedSets: state.completedSets,
     }));
   } catch(e) {}
 }
 
+// Save whenever app is hidden (minimized, tab switch)
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden') saveState();
+});
+window.addEventListener('pagehide', saveState);
+
 // ============================================================
-// WEIGHT
+// WEIGHT — save previous weight before first change of day
 // ============================================================
-const weightDebounceTimers = {};
+var weightDebounceTimers = {};
 
 function changeWeight(exId, delta, wEl) {
-  const ex = EXERCISES[exId];
-  const step = ex.weightStep || 0.25;
-  let cur = state.weights[exId] ?? 0;
-  const newVal = Math.round((cur + delta * step) * 100) / 100;
+  var ex   = EXERCISES[exId];
+  var step = ex.weightStep || 0.25;
+  var cur  = state.weights[exId] != null ? state.weights[exId] : 0;
+  var newVal = Math.round((cur + delta * step) * 100) / 100;
   if (newVal < 0) return;
+
+  // Record old weight as history entry before first change today
+  var today = todayStr();
+  if (!state.weightHistory[exId]) state.weightHistory[exId] = [];
+  var hist = state.weightHistory[exId];
+  if (!weightDebounceTimers[exId] && (!hist.length || hist[hist.length-1].date !== today)) {
+    hist.push({ date: today, weight: cur });
+  }
 
   state.weights[exId] = newVal;
   if (wEl) wEl.textContent = newVal + ' ' + (ex.weightUnit || 'кг');
 
-  // Save weight immediately but debounce history recording (1.5s after last change)
   clearTimeout(weightDebounceTimers[exId]);
-  weightDebounceTimers[exId] = setTimeout(() => {
-    const today = new Date().toISOString().slice(0,10);
-    if (!state.weightHistory[exId]) state.weightHistory[exId] = [];
-    const hist = state.weightHistory[exId];
-    if (hist.length && hist[hist.length-1].date === today) {
-      hist[hist.length-1].weight = state.weights[exId];
-    } else {
-      hist.push({ date: today, weight: state.weights[exId] });
-    }
+  weightDebounceTimers[exId] = setTimeout(function() {
+    delete weightDebounceTimers[exId];
     saveState();
-  }, 1500);
-
-  // Save weight itself right away
+  }, 800);
   saveState();
 }
 
@@ -742,22 +767,25 @@ function changeWeight(exId, delta, wEl) {
 // ============================================================
 function toggleSet(uid, idx, total) {
   if (!state.completedSets[uid]) state.completedSets[uid] = [];
-  const arr = state.completedSets[uid];
-  const pos = arr.indexOf(idx);
+  var arr = state.completedSets[uid];
+  var pos = arr.indexOf(idx);
   if (pos === -1) arr.push(idx); else arr.splice(pos, 1);
-  saveState(); // save immediately on every tap
-  const row = document.getElementById('sets_' + uid);
+  saveState(); // save immediately
+  var row = document.getElementById('sets_' + uid);
   if (row) row.innerHTML = buildDots(uid, total);
-  if (arr.length >= total && total > 0) showToast('✓ Упражнение выполнено!');
+  if (arr.length >= total && total > 0) showToast('\u2713 \u0423\u043f\u0440\u0430\u0436\u043d\u0435\u043d\u0438\u0435 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e!');
 }
 
 function buildDots(uid, total) {
   if (!total) return '';
-  const done = state.completedSets[uid] || [];
-  if (done.length >= total) return `<span class="sets-done-check">✓</span><span class="sets-done-label">Готово!</span>`;
-  let h = '';
-  for (let i = 0; i < total; i++) {
-    h += `<button class="set-dot ${done.includes(i)?'done':''}" onclick="event.stopPropagation();toggleSet('${uid}',${i},${total})"></button>`;
+  var done = state.completedSets[uid] || [];
+  if (done.length >= total) {
+    return '<span class="sets-done-check">\u2713</span><span class="sets-done-label">\u0413\u043e\u0442\u043e\u0432\u043e!</span>';
+  }
+  var h = '';
+  for (var i = 0; i < total; i++) {
+    var cls = done.indexOf(i) !== -1 ? 'done' : '';
+    h += '<button class="set-dot ' + cls + '" onclick="event.stopPropagation();toggleSet(\'' + uid + '\',' + i + ',' + total + ')"></button>';
   }
   return h;
 }
@@ -765,7 +793,7 @@ function buildDots(uid, total) {
 // ============================================================
 // TIMERS
 // ============================================================
-const timers = {};
+var timers = {};
 function startTimer(uid, secs, btn) {
   if (timers[uid]) {
     clearInterval(timers[uid]);
@@ -774,114 +802,115 @@ function startTimer(uid, secs, btn) {
     btn.querySelector('.timer-display').textContent = fmtSec(secs);
     return;
   }
-  let rem = secs;
+  var rem = secs;
   btn.classList.add('running');
-  const disp = btn.querySelector('.timer-display');
-  timers[uid] = setInterval(() => {
+  var disp = btn.querySelector('.timer-display');
+  timers[uid] = setInterval(function() {
     rem--;
     disp.textContent = fmtSec(rem);
     if (rem <= 0) {
       clearInterval(timers[uid]); delete timers[uid];
       btn.classList.remove('running');
       disp.textContent = fmtSec(secs);
-      showToast('⏱ Время!');
+      showToast('\u23f1 \u0412\u0440\u0435\u043c\u044f!');
       if (navigator.vibrate) navigator.vibrate([200,100,200]);
     }
   }, 1000);
 }
 function fmtSec(s) {
-  if (s <= 0) return '0с';
-  const m = Math.floor(s/60), sec = s%60;
-  return m > 0 ? `${m}:${sec.toString().padStart(2,'0')}` : `${s}с`;
+  if (s <= 0) return '0\u0441';
+  var m = Math.floor(s/60), sec = s % 60;
+  return m > 0 ? m + ':' + String(sec).padStart(2,'0') : s + '\u0441';
 }
 
 // ============================================================
-// RENDER
+// RENDER WORKOUT
 // ============================================================
 function renderWorkout() {
-  const day = state.currentDay;
-  const w = WORKOUTS[day];
-  const badge = document.getElementById('headerDayBadge');
-  badge.textContent = `${w.label} · ${w.type==='gym'?'ЗАЛ':'ДОМА'}`;
-  badge.className = `day-badge ${w.type}`;
+  var day = state.currentDay;
+  var w   = WORKOUTS[day];
+  var badge = document.getElementById('headerDayBadge');
+  badge.textContent = w.label + ' \u00b7 ' + (w.type === 'gym' ? '\u0417\u0410\u041b' : '\u0414\u041e\u041c\u0410');
+  badge.className = 'day-badge ' + w.type;
 
-  let html = '';
-  w.sections.forEach(sec => {
-    html += `<div class="section-label">${sec.label}</div>`;
-    sec.exercises.forEach((e, i) => { html += renderCard(e, i+1, day); });
+  var html = '';
+  w.sections.forEach(function(sec) {
+    html += '<div class="section-label">' + sec.label + '</div>';
+    sec.exercises.forEach(function(e, i) { html += renderCard(e, i+1, day); });
   });
   document.getElementById('workoutContent').innerHTML = html;
 }
 
 function renderCard(entry, num, day) {
-  const ex = EXERCISES[entry.id];
+  var ex = EXERCISES[entry.id];
   if (!ex) return '';
-  const uid = `${day}_${entry.id}_${num}`;
-  const hasW = ex.weightStep !== null && ex.weightStep !== undefined;
+  var uid = day + '_' + entry.id + '_' + num;
+  var hasW = ex.weightStep != null;
 
-  let meta = [];
-  if (entry.sets && entry.reps) meta.push(`${entry.sets} × ${entry.reps}`);
-  else if (entry.sets && entry.time) meta.push(`${entry.sets} × ${fmtSec(entry.time)}`);
-  else if (entry.sets) meta.push(`${entry.sets} подх.`);
+  var meta = [];
+  if (entry.sets && entry.reps) meta.push(entry.sets + ' \u00d7 ' + entry.reps);
+  else if (entry.sets && entry.time) meta.push(entry.sets + ' \u00d7 ' + fmtSec(entry.time));
+  else if (entry.sets) meta.push(entry.sets + ' \u043f\u043e\u0434\u0445.');
   if (entry.note) meta.push(entry.note);
 
-  const wVal = state.weights[entry.id];
-  const wDisplay = (wVal !== null && wVal !== undefined) ? `${wVal} ${ex.weightUnit||'кг'}` : (ex.weightDisplay||'—');
+  var wVal = state.weights[entry.id];
+  var wDisplay = (wVal != null) ? (wVal + ' ' + (ex.weightUnit || '\u043a\u0433')) : (ex.weightDisplay || '\u2014');
 
-  const weightHTML = hasW ? `
-    <div class="ex-right">
-      <div class="ex-weight-controls">
-        <button class="w-btn" onclick="event.stopPropagation();changeWeight('${entry.id}',-1,document.getElementById('w_${uid}'))">−</button>
-        <div class="w-value" id="w_${uid}">${wDisplay}</div>
-        <button class="w-btn" onclick="event.stopPropagation();changeWeight('${entry.id}',1,document.getElementById('w_${uid}'))">+</button>
-      </div>
-      <button class="w-history-btn" onclick="event.stopPropagation();showHistory('${entry.id}')">📈 история</button>
-    </div>` :
-    (ex.weightDisplay ? `<div class="ex-right"><div class="no-weight">${ex.weightDisplay}</div></div>` : '');
-
-  const total = entry.sets || 0;
-  const dotsHTML = total > 0 ? `<div class="sets-row" id="sets_${uid}">${buildDots(uid, total)}</div>` : '';
-  const timerHTML = entry.time ? `<button class="timer-chip" onclick="startTimer('${uid}',${entry.time},this)">⏱ <span class="timer-display">${fmtSec(entry.time)}</span></button><br>` : '';
-
-  const mediaFiles = (state.media||{})[entry.id] || [];
-  let mediaGridHTML = '';
-  if (mediaFiles.length) {
-    mediaGridHTML = '<div class="media-grid">' + mediaFiles.map((f,i) =>
-      f.type==='video'
-        ? `<div class="media-item"><div class="media-video-thumb" onclick="openLightboxVideo('${entry.id}',${i})">🎬</div><button class="media-remove" onclick="removeMedia('${entry.id}',${i})">✕</button></div>`
-        : `<div class="media-item"><img class="media-thumb" src="${f.src}" onclick="openLightboxImg('${entry.id}',${i})"><button class="media-remove" onclick="removeMedia('${entry.id}',${i})">✕</button></div>`
-    ).join('') + '</div>';
+  var weightHTML = '';
+  if (hasW) {
+    weightHTML = '<div class="ex-right">'
+      + '<div class="ex-weight-controls">'
+      + '<button class="w-btn" onclick="event.stopPropagation();changeWeight(\'' + entry.id + '\',-1,document.getElementById(\'w_' + uid + '\'))">−</button>'
+      + '<div class="w-value" id="w_' + uid + '">' + wDisplay + '</div>'
+      + '<button class="w-btn" onclick="event.stopPropagation();changeWeight(\'' + entry.id + '\',1,document.getElementById(\'w_' + uid + '\'))">+</button>'
+      + '</div>'
+      + '<button class="w-history-btn" onclick="event.stopPropagation();showHistory(\'' + entry.id + '\')">\ud83d\udcc8 \u0438\u0441\u0442\u043e\u0440\u0438\u044f</button>'
+      + '</div>';
+  } else if (ex.weightDisplay) {
+    weightHTML = '<div class="ex-right"><div class="no-weight">' + ex.weightDisplay + '</div></div>';
   }
 
-  return `
-<div class="ex-card">
-  <div class="ex-header" onclick="toggleDetail('${uid}')">
-    <div class="ex-num">${num}</div>
-    <div class="ex-info">
-      <div class="ex-name">${ex.name}</div>
-      <div class="ex-meta-line">${meta.join(' · ')}</div>
-      ${dotsHTML}
-    </div>
-    ${weightHTML}
-    <svg class="ex-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-  </div>
-  <div class="ex-detail" id="detail_${uid}">
-    <div class="ex-detail-inner">
-      ${timerHTML}${ex.tech ? `<div class="tech-text">${ex.tech}</div>` : ''}
-      ${mediaGridHTML}
-      <div class="media-placeholder" onclick="document.getElementById('mi_${uid}').click()">
-        <span>📎</span><span class="media-placeholder-text">Прикрепить фото / видео</span>
-      </div>
-      <input type="file" id="mi_${uid}" accept="image/*,video/*" multiple onchange="handleMediaFiles('${entry.id}',this)">
-    </div>
-  </div>
-</div>`;
+  var total = entry.sets || 0;
+  var dotsHTML = total > 0 ? '<div class="sets-row" id="sets_' + uid + '">' + buildDots(uid, total) + '</div>' : '';
+  var timerHTML = entry.time ? '<button class="timer-chip" onclick="startTimer(\'' + uid + '\',' + entry.time + ',this)">\u23f1 <span class="timer-display">' + fmtSec(entry.time) + '</span></button><br>' : '';
+
+  var mediaFiles = (state.media || {})[entry.id] || [];
+  var mediaGridHTML = '';
+  if (mediaFiles.length) {
+    mediaGridHTML = '<div class="media-grid">' + mediaFiles.map(function(f, i) {
+      if (f.type === 'video') {
+        return '<div class="media-item"><div class="media-video-thumb" onclick="openLightboxVideo(\'' + entry.id + '\',' + i + ')">\ud83c\udfa6</div><button class="media-remove" onclick="removeMedia(\'' + entry.id + '\',' + i + ')">\u2715</button></div>';
+      }
+      return '<div class="media-item"><img class="media-thumb" src="' + f.src + '" onclick="openLightboxImg(\'' + entry.id + '\',' + i + ')"><button class="media-remove" onclick="removeMedia(\'' + entry.id + '\',' + i + ')">\u2715</button></div>';
+    }).join('') + '</div>';
+  }
+
+  return '<div class="ex-card">'
+    + '<div class="ex-header" onclick="toggleDetail(\'' + uid + '\')">'
+    + '<div class="ex-num">' + num + '</div>'
+    + '<div class="ex-info">'
+    + '<div class="ex-name">' + ex.name + '</div>'
+    + '<div class="ex-meta-line">' + meta.join(' \u00b7 ') + '</div>'
+    + dotsHTML
+    + '</div>'
+    + weightHTML
+    + '<svg class="ex-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
+    + '</div>'
+    + '<div class="ex-detail" id="detail_' + uid + '">'
+    + '<div class="ex-detail-inner">'
+    + timerHTML
+    + (ex.tech ? '<div class="tech-text">' + ex.tech + '</div>' : '')
+    + mediaGridHTML
+    + '<div class="media-placeholder" onclick="document.getElementById(\'mi_' + uid + '\').click()">'
+    + '<span>\ud83d\udcce</span><span class="media-placeholder-text">\u041f\u0440\u0438\u043a\u0440\u0435\u043f\u0438\u0442\u044c \u0444\u043e\u0442\u043e / \u0432\u0438\u0434\u0435\u043e</span>'
+    + '</div>'
+    + '<input type="file" id="mi_' + uid + '" accept="image/*,video/*" multiple onchange="handleMediaFiles(\'' + entry.id + '\',this)">'
+    + '</div></div></div>';
 }
 
 function toggleDetail(uid) {
-  document.getElementById('detail_'+uid)?.classList.toggle('open');
+  var el = document.getElementById('detail_' + uid);
+  if (el) el.classList.toggle('open');
 }
 
 // ============================================================
@@ -890,59 +919,65 @@ function toggleDetail(uid) {
 function handleMediaFiles(exId, input) {
   if (!state.media) state.media = {};
   if (!state.media[exId]) state.media[exId] = [];
-  Array.from(input.files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      state.media[exId].push({ src: e.target.result, type: file.type.startsWith('video')?'video':'image' });
-      renderWorkout(); showToast('Медиафайл прикреплён');
+  Array.from(input.files).forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      state.media[exId].push({ src: e.target.result, type: file.type.startsWith('video') ? 'video' : 'image' });
+      renderWorkout();
+      showToast('\u041c\u0435\u0434\u0438\u0430\u0444\u0430\u0439\u043b \u043f\u0440\u0438\u043a\u0440\u0435\u043f\u043b\u0451\u043d');
     };
     reader.readAsDataURL(file);
   });
 }
-function removeMedia(exId, idx) { state.media?.[exId]?.splice(idx,1); renderWorkout(); }
+function removeMedia(exId, idx) {
+  if (state.media && state.media[exId]) { state.media[exId].splice(idx, 1); renderWorkout(); }
+}
 function openLightboxImg(exId, idx) {
   document.getElementById('lightboxImg').src = state.media[exId][idx].src;
   document.getElementById('lightboxImg').style.display = 'block';
   document.getElementById('lightboxVideo').style.display = 'none';
   document.getElementById('lightbox').classList.add('open');
+  history.pushState({ lb: true }, '');
 }
 function openLightboxVideo(exId, idx) {
-  const vid = document.getElementById('lightboxVideo');
+  var vid = document.getElementById('lightboxVideo');
   vid.src = state.media[exId][idx].src;
   vid.style.display = 'block';
   document.getElementById('lightboxImg').style.display = 'none';
   document.getElementById('lightbox').classList.add('open');
+  history.pushState({ lb: true }, '');
 }
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
-  try { document.getElementById('lightboxVideo').pause(); } catch(e){}
+  try { document.getElementById('lightboxVideo').pause(); } catch(e) {}
 }
 
 // ============================================================
 // HISTORY MODAL
 // ============================================================
 function showHistory(exId) {
-  const ex = EXERCISES[exId];
-  const hist = [...(state.weightHistory[exId]||[])].reverse();
+  var ex   = EXERCISES[exId];
+  var hist = (state.weightHistory[exId] || []).slice().reverse();
   document.getElementById('historyModalTitle').textContent = ex.name;
-  let html = '';
+  var html = '';
   if (!hist.length) {
-    html = '<div style="color:var(--text3);font-size:14px;padding:20px 0;text-align:center">История пока пуста</div>';
+    html = '<div style="color:var(--text3);font-size:14px;padding:20px 0;text-align:center">\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u043f\u043e\u043a\u0430 \u043f\u0443\u0441\u0442\u0430</div>';
   } else {
-    hist.forEach((entry, i) => {
-      const prev = hist[i+1];
-      let diffHTML = '';
+    hist.forEach(function(entry, i) {
+      var prev = hist[i+1];
+      var diffHTML = '';
       if (prev) {
-        const d = Math.round((entry.weight - prev.weight)*100)/100;
-        if (d>0) diffHTML=`<span class="history-diff up">+${d}</span>`;
-        else if (d<0) diffHTML=`<span class="history-diff down">${d}</span>`;
-        else diffHTML=`<span class="history-diff same">—</span>`;
+        var d = Math.round((entry.weight - prev.weight) * 100) / 100;
+        if (d > 0) diffHTML = '<span class="history-diff up">+' + d + '</span>';
+        else if (d < 0) diffHTML = '<span class="history-diff down">' + d + '</span>';
+        else diffHTML = '<span class="history-diff same">\u2014</span>';
       }
-      const ds = new Date(entry.date).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
-      html += `<div class="history-item">
-        <div class="history-date">${ds}</div>
-        <div style="display:flex;align-items:center;gap:8px">${diffHTML}<div class="history-weight">${entry.weight} ${ex.weightUnit||'кг'}</div></div>
-      </div>`;
+      var ds = formatDateRU(entry.date);
+      html += '<div class="history-item">'
+        + '<div class="history-date">' + ds + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px">' + diffHTML
+        + '<div class="history-weight">' + entry.weight + ' ' + (ex.weightUnit || '\u043a\u0433') + '</div></div>'
+        + '</div>';
     });
   }
   document.getElementById('historyModalContent').innerHTML = html;
@@ -953,10 +988,10 @@ function showHistory(exId) {
 // DAY TABS
 // ============================================================
 function renderDayTabs() {
-  document.getElementById('dayTabs').innerHTML = DAYS_ORDER.map(day => {
-    const w = WORKOUTS[day];
-    const active = day===state.currentDay ? `active ${w.type}` : '';
-    return `<button class="day-tab ${active}" onclick="selectDay('${day}')">${w.label}</button>`;
+  document.getElementById('dayTabs').innerHTML = DAYS_ORDER.map(function(day) {
+    var w = WORKOUTS[day];
+    var active = day === state.currentDay ? 'active ' + w.type : '';
+    return '<button class="day-tab ' + active + '" onclick="selectDay(\'' + day + '\')">' + w.label + '</button>';
   }).join('');
 }
 
@@ -967,224 +1002,391 @@ function selectDay(day) {
 }
 
 // ============================================================
-// SCREENS
+// SCREEN SWITCH
 // ============================================================
 function switchScreen(screen, btn) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('screen-'+screen).classList.add('active');
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('screen-' + screen).classList.add('active');
   btn.classList.add('active');
-  if (screen==='progress') renderProgress();
+  if (screen === 'progress') renderProgress();
+}
+
+// ============================================================
+// INDEXEDDB
+// ============================================================
+var db = null;
+function openDB() {
+  return new Promise(function(resolve, reject) {
+    if (db) { resolve(db); return; }
+    var req = indexedDB.open('gym_photos_v1', 1);
+    req.onupgradeneeded = function(e) {
+      var d = e.target.result;
+      if (!d.objectStoreNames.contains('photos')) d.createObjectStore('photos', { keyPath: 'id' });
+    };
+    req.onsuccess = function(e) { db = e.target.result; resolve(db); };
+    req.onerror = function() { reject(req.error); };
+  });
+}
+function dbSavePhoto(photo) {
+  return openDB().then(function(d) {
+    return new Promise(function(resolve, reject) {
+      var tx = d.transaction('photos', 'readwrite');
+      tx.objectStore('photos').put(photo);
+      tx.oncomplete = resolve; tx.onerror = function() { reject(tx.error); };
+    });
+  });
+}
+function dbDeletePhoto(id) {
+  return openDB().then(function(d) {
+    return new Promise(function(resolve, reject) {
+      var tx = d.transaction('photos', 'readwrite');
+      tx.objectStore('photos').delete(id);
+      tx.oncomplete = resolve; tx.onerror = function() { reject(tx.error); };
+    });
+  });
+}
+function dbLoadAllPhotos() {
+  return openDB().then(function(d) {
+    return new Promise(function(resolve, reject) {
+      var tx = d.transaction('photos', 'readonly');
+      var req = tx.objectStore('photos').getAll();
+      req.onsuccess = function() { resolve(req.result || []); };
+      req.onerror = function() { reject(req.error); };
+    });
+  });
+}
+
+// ============================================================
+// DATE HELPERS
+// ============================================================
+function parseDateFromFilename(filename) {
+  var m = filename.match(/(\d{4})(\d{2})(\d{2})_(\d{6})/);
+  if (!m) m = filename.match(/(\d{4})(\d{2})(\d{2})/);
+  if (!m) return null;
+  var y = parseInt(m[1]), mo = parseInt(m[2]), d = parseInt(m[3]);
+  if (y < 2000 || y > 2100 || mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  return m[1] + '-' + m[2] + '-' + m[3];
+}
+function formatDateRU(dateStr) {
+  var parts = dateStr.split('-');
+  var months = ['\u044f\u043d\u0432\u0430\u0440\u044f','\u0444\u0435\u0432\u0440\u0430\u043b\u044f','\u043c\u0430\u0440\u0442\u0430','\u0430\u043f\u0440\u0435\u043b\u044f','\u043c\u0430\u044f','\u0438\u044e\u043d\u044f','\u0438\u044e\u043b\u044f','\u0430\u0432\u0433\u0443\u0441\u0442\u0430','\u0441\u0435\u043d\u0442\u044f\u0431\u0440\u044f','\u043e\u043a\u0442\u044f\u0431\u0440\u044f','\u043d\u043e\u044f\u0431\u0440\u044f','\u0434\u0435\u043a\u0430\u0431\u0440\u044f'];
+  return parseInt(parts[2]) + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
+}
+function formatDateShortRU(dateStr) {
+  var parts = dateStr.split('-');
+  var months = ['\u044f\u043d\u0432','\u0444\u0435\u0432','\u043c\u0430\u0440','\u0430\u043f\u0440','\u043c\u0430\u0439','\u0438\u044e\u043d','\u0438\u044e\u043b','\u0430\u0432\u0433','\u0441\u0435\u043d','\u043e\u043a\u0442','\u043d\u043e\u044f','\u0434\u0435\u043a'];
+  return parseInt(parts[2]) + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
 }
 
 // ============================================================
 // PROGRESS
 // ============================================================
-// ============================================================
-// INDEXEDDB для фото прогресса
-// ============================================================
-let db = null;
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    if (db) { resolve(db); return; }
-    const req = indexedDB.open('gym_photos_v1', 1);
-    req.onupgradeneeded = e => {
-      const d = e.target.result;
-      if (!d.objectStoreNames.contains('photos')) {
-        d.createObjectStore('photos', { keyPath: 'id' });
-      }
-    };
-    req.onsuccess = e => { db = e.target.result; resolve(db); };
-    req.onerror = () => reject(req.error);
-  });
-}
-
-async function dbSavePhoto(photo) {
-  const d = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = d.transaction('photos', 'readwrite');
-    tx.objectStore('photos').put(photo);
-    tx.oncomplete = resolve;
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-async function dbDeletePhoto(id) {
-  const d = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = d.transaction('photos', 'readwrite');
-    tx.objectStore('photos').delete(id);
-    tx.oncomplete = resolve;
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-async function dbLoadAllPhotos() {
-  const d = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = d.transaction('photos', 'readonly');
-    const req = tx.objectStore('photos').getAll();
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-// Parse date from filename like "20260315_143022" or "20260315143022"
-// Returns "yyyy-mm-dd" or null
-function parseDateFromFilename(filename) {
-  const m = filename.match(/(\d{4})(\d{2})(\d{2})[_\-]?(\d{2})(\d{2})(\d{2})/);
-  if (!m) return null;
-  const y = m[1], mo = m[2], d = m[3];
-  // Basic sanity check
-  if (parseInt(mo) < 1 || parseInt(mo) > 12) return null;
-  if (parseInt(d) < 1 || parseInt(d) > 31) return null;
-  return `${y}-${mo}-${d}`;
-}
-
-// Format date string "yyyy-mm-dd" for display without timezone shift
-function formatDateRU(dateStr) {
-  const [y, m, d] = dateStr.split('-');
-  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
-}
-function formatDateShortRU(dateStr) {
-  const [y, m, d] = dateStr.split('-');
-  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
-  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
-}
-
 function renderProgress() {
-  const content = document.getElementById('progressContent');
-  state.compareMode==='gallery' ? renderGallery(content) : renderCompare(content);
+  var content = document.getElementById('progressContent');
+  if (state.compareMode === 'gallery') renderGallery(content);
+  else renderCompare(content);
 }
 
-let galleryEditMode = false;
+var galleryEditMode = false;
 
 function toggleGalleryEdit() {
   galleryEditMode = !galleryEditMode;
-  const btn = document.getElementById('editGalleryBtn');
-  const grid = document.getElementById('galleryGrid');
-  if (btn) { btn.textContent = galleryEditMode ? '✓ Готово' : '✎ Удалить фото'; btn.classList.toggle('active', galleryEditMode); }
+  var btn  = document.getElementById('editGalleryBtn');
+  var grid = document.getElementById('galleryGrid');
+  if (btn)  { btn.textContent = galleryEditMode ? '\u2713 \u0413\u043e\u0442\u043e\u0432\u043e' : '\u270e \u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0444\u043e\u0442\u043e'; btn.classList.toggle('active', galleryEditMode); }
   if (grid) grid.classList.toggle('gallery-edit-mode', galleryEditMode);
 }
 
-function renderGallery(container) {
-  const photos = state.progressPhotos;
-  if (!photos.length) { container.innerHTML=`<div class="progress-empty"><div class="big-icon">📸</div><p>Добавь первое фото прогресса</p></div>`; galleryEditMode=false; return; }
-  const byDate={};
-  photos.forEach(p=>{(byDate[p.date]=byDate[p.date]||[]).push(p);});
-  const vL={front:'Анфас',side:'Профиль',back:'Спина'};
-  let html=`<button class="edit-gallery-btn ${galleryEditMode?'active':''}" id="editGalleryBtn" onclick="toggleGalleryEdit()">${galleryEditMode?'✓ Готово':'✎ Удалить фото'}</button>`;
-  html+=`<div id="galleryGrid" class="${galleryEditMode?'gallery-edit-mode':''}">`;
-  Object.keys(byDate).sort().reverse().forEach(date=>{
-    html+=`<div class="photo-date-group"><div class="photo-date-label">${formatDateRU(date)}</div><div class="photo-row">`;
-    ['front','side','back'].forEach(v=>{
-      const p=byDate[date].find(x=>x.view===v);
-      if(p) html+=`<div class="photo-thumb-wrap"><img class="photo-thumb" src="${p.src}" onclick="openProgressLightbox('${p.id}')"><button class="photo-delete-btn" onclick="deletePhoto('${p.id}')">✕</button><div class="photo-view-label">${vL[v]}</div></div>`;
-    });
-    html+=`</div></div>`;
-  });
-  html+=`</div>`;
-  container.innerHTML=html;
+function renderMeasurementsBlock(date) {
+  var text = state.measurements[date] || '';
+  var safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+  var inner = safeText || '<span class="measurements-empty">\u041d\u0430\u0436\u043c\u0438 \u270e \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0437\u0430\u043c\u0435\u0440\u044b</span>';
+  return '<div class="measurements-block">'
+    + '<div class="measurements-header">'
+    + '<div class="measurements-title">\u0417\u0410\u041c\u0415\u0420\u042b</div>'
+    + '<button class="measurements-edit-btn" onclick="editMeasurements(\'' + date + '\')">\u270e \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c</button>'
+    + '</div>'
+    + '<div class="measurements-text" id="mtext_' + date + '">' + inner + '</div>'
+    + '</div>';
 }
 
-function renderCompare(container) {
-  const vL={front:'Анфас',side:'Профиль',back:'Спина'};
-  const view=state.compareView;
-  const filtered=state.progressPhotos.filter(p=>p.view===view).sort((a,b)=>a.date.localeCompare(b.date));
-  if(!filtered.length){container.innerHTML=`<div class="progress-empty"><div class="big-icon">📷</div><p>Нет фото «${vL[view]}»<br>Добавь ниже</p></div>`;return;}
+function editMeasurements(date) {
+  var current = state.measurements[date] || '';
+  var block = document.getElementById('mtext_' + date);
+  if (!block) return;
+  block.innerHTML = '<textarea class="measurements-textarea" id="mtextarea_' + date + '" placeholder="\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0432\u0435\u0441 \u0442\u0435\u043b\u0430 62\u043a\u0433, \u0442\u0430\u043b\u0438\u044f 70\u0441\u043c, \u0431\u0451\u0434\u0440\u0430 96\u0441\u043c...">' + current + '</textarea>'
+    + '<button onclick="saveMeasurements(\'' + date + '\')" style="margin-top:8px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;padding:8px 16px;font-family:\'Golos Text\',sans-serif;font-size:12px;font-weight:600;cursor:pointer">\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c</button>';
+  var ta = document.getElementById('mtextarea_' + date);
+  if (ta) ta.focus();
+}
 
-  if(state.compareMode==='custom'){
-    const dates=[...new Set(state.progressPhotos.map(p=>p.date))].sort();
-    const opts=dates.map(d=>`<option value="${d}">${formatDateRU(d)}</option>`).join('');
-    const selL=container.querySelector('#customLeft')?.value||'';
-    const selR=container.querySelector('#customRight')?.value||'';
-    const left=selL?filtered.find(p=>p.date===selL):null;
-    const right=selR?filtered.find(p=>p.date===selR):null;
-    const lL=selL?formatDateShortRU(selL):'Дата 1';
-    const rL=selR?formatDateShortRU(selR):'Дата 2';
-    container.innerHTML=`<div class="date-select-row">
-      <select class="date-select" id="customLeft" onchange="renderProgress()"><option value="">Дата 1</option>${opts}</select>
-      <select class="date-select" id="customRight" onchange="renderProgress()"><option value="">Дата 2</option>${opts}</select>
-    </div>${pairHTML(left,right,lL,rL)}`;
-    if(selL) container.querySelector('#customLeft').value=selL;
-    if(selR) container.querySelector('#customRight').value=selR;
+function saveMeasurements(date) {
+  var ta = document.getElementById('mtextarea_' + date);
+  if (!ta) return;
+  var val = ta.value.trim();
+  if (val) state.measurements[date] = val; else delete state.measurements[date];
+  saveState();
+  var block = document.getElementById('mtext_' + date);
+  if (block) {
+    var safeText = val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+    block.innerHTML = safeText || '<span class="measurements-empty">\u041d\u0430\u0436\u043c\u0438 \u270e \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0437\u0430\u043c\u0435\u0440\u044b</span>';
+  }
+}
+
+function addMeasurementsForDate() {
+  state.compareMode = 'gallery';
+  document.querySelectorAll('.compare-tab').forEach(function(b) { b.classList.toggle('active', b.dataset.mode === 'gallery'); });
+  renderProgress();
+  var today = todayStr();
+  setTimeout(function() { editMeasurements(today); }, 150);
+}
+
+function renderGallery(container) {
+  var photos = state.progressPhotos;
+  var photoDates = {};
+  photos.forEach(function(p) { photoDates[p.date] = true; });
+  var measDates = Object.keys(state.measurements);
+  var allDatesSet = {};
+  Object.keys(photoDates).forEach(function(d) { allDatesSet[d] = true; });
+  measDates.forEach(function(d) { allDatesSet[d] = true; });
+  var allDates = Object.keys(allDatesSet).sort().reverse();
+
+  if (!allDates.length) {
+    container.innerHTML = '<div class="progress-empty"><div class="big-icon">\ud83d\udcf8</div><p>\u0414\u043e\u0431\u0430\u0432\u044c \u043f\u0435\u0440\u0432\u043e\u0435 \u0444\u043e\u0442\u043e</p></div>';
+    galleryEditMode = false;
     return;
   }
 
-  let left,right,lL,rL;
-  if(state.compareMode==='all'){
-    left=filtered[0]; right=filtered[filtered.length-1]; lL='Начало'; rL='Сейчас';
-  } else {
-    right=filtered[filtered.length-1];
-    // subtract 7 days purely via string math to avoid timezone issues
-    const rd=new Date(right.date+'T12:00:00'); rd.setDate(rd.getDate()-7);
-    const waS=rd.toISOString().slice(0,10);
-    left=filtered.reduce((b,p)=>p.date<=waS?p:b,null)||(filtered.length>1?filtered[filtered.length-2]:filtered[0]);
-    lL='~Неделю назад'; rL='Сейчас';
+  var byDate = {};
+  photos.forEach(function(p) {
+    if (!byDate[p.date]) byDate[p.date] = [];
+    byDate[p.date].push(p);
+  });
+
+  var vL = { front:'\u0410\u043d\u0444\u0430\u0441', side:'\u041f\u0440\u043e\u0444\u0438\u043b\u044c', back:'\u0421\u043f\u0438\u043d\u0430' };
+  var editBtn = galleryEditMode ? '\u2713 \u0413\u043e\u0442\u043e\u0432\u043e' : '\u270e \u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0444\u043e\u0442\u043e';
+  var html = '<button class="edit-gallery-btn ' + (galleryEditMode?'active':'') + '" id="editGalleryBtn" onclick="toggleGalleryEdit()">' + editBtn + '</button>';
+  html += '<div id="galleryGrid" class="' + (galleryEditMode?'gallery-edit-mode':'') + '">';
+
+  allDates.forEach(function(date) {
+    html += '<div class="photo-date-group"><div class="photo-date-label">' + formatDateRU(date) + '</div>';
+    var dayPhotos = byDate[date] || [];
+    if (dayPhotos.length) {
+      html += '<div class="photo-row">';
+      ['front','side','back'].forEach(function(v) {
+        var p = dayPhotos.filter(function(x) { return x.view === v; })[0];
+        if (p) {
+          html += '<div class="photo-thumb-wrap">'
+            + '<img class="photo-thumb" src="' + p.src + '" onclick="openProgressLightbox(\'' + p.id + '\')">'
+            + '<button class="photo-delete-btn" onclick="deletePhoto(\'' + p.id + '\')">\u2715</button>'
+            + '<div class="photo-view-label">' + vL[v] + '</div>'
+            + '</div>';
+        }
+      });
+      html += '</div>';
+    }
+    html += renderMeasurementsBlock(date);
+    html += '</div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderCompare(container) {
+  var vL = { front:'\u0410\u043d\u0444\u0430\u0441', side:'\u041f\u0440\u043e\u0444\u0438\u043b\u044c', back:'\u0421\u043f\u0438\u043d\u0430' };
+  var view = state.compareView;
+  var filtered = state.progressPhotos.filter(function(p) { return p.view === view; }).sort(function(a,b) { return a.date < b.date ? -1 : 1; });
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="progress-empty"><div class="big-icon">\ud83d\udcf7</div><p>\u041d\u0435\u0442 \u0444\u043e\u0442\u043e \u00ab' + vL[view] + '\u00bb<br>\u0414\u043e\u0431\u0430\u0432\u044c \u043d\u0438\u0436\u0435</p></div>';
+    return;
   }
-  container.innerHTML=pairHTML(left,right,lL,rL);
+
+  if (state.compareMode === 'custom') {
+    var dates = [];
+    var seen = {};
+    state.progressPhotos.forEach(function(p) { if (!seen[p.date]) { seen[p.date] = true; dates.push(p.date); } });
+    dates.sort();
+    var opts = dates.map(function(d) { return '<option value="' + d + '">' + formatDateRU(d) + '</option>'; }).join('');
+    var selL = (container.querySelector('#customLeft') || {}).value || '';
+    var selR = (container.querySelector('#customRight') || {}).value || '';
+    var left  = selL ? filtered.filter(function(p) { return p.date === selL; })[0] : null;
+    var right = selR ? filtered.filter(function(p) { return p.date === selR; })[0] : null;
+    var lL = selL ? formatDateShortRU(selL) : '\u0414\u0430\u0442\u0430 1';
+    var rL = selR ? formatDateShortRU(selR) : '\u0414\u0430\u0442\u0430 2';
+    container.innerHTML = '<div class="date-select-row">'
+      + '<select class="date-select" id="customLeft" onchange="renderProgress()"><option value="">\u0414\u0430\u0442\u0430 1</option>' + opts + '</select>'
+      + '<select class="date-select" id="customRight" onchange="renderProgress()"><option value="">\u0414\u0430\u0442\u0430 2</option>' + opts + '</select>'
+      + '</div>' + pairHTML(left, right, lL, rL);
+    if (selL) container.querySelector('#customLeft').value = selL;
+    if (selR) container.querySelector('#customRight').value = selR;
+    return;
+  }
+
+  var left, right, lL, rL;
+  if (state.compareMode === 'all') {
+    left = filtered[0]; right = filtered[filtered.length-1];
+    lL = '\u041d\u0430\u0447\u0430\u043b\u043e'; rL = '\u0421\u0435\u0439\u0447\u0430\u0441';
+  } else {
+    right = filtered[filtered.length-1];
+    var wa = new Date(right.date + 'T12:00:00'); wa.setDate(wa.getDate()-7);
+    var waS = wa.toISOString().slice(0,10);
+    left = filtered.reduce(function(b,p) { return p.date <= waS ? p : b; }, null) || (filtered.length > 1 ? filtered[filtered.length-2] : filtered[0]);
+    lL = '~\u041d\u0435\u0434\u0435\u043b\u044e \u043d\u0430\u0437\u0430\u0434'; rL = '\u0421\u0435\u0439\u0447\u0430\u0441';
+  }
+  container.innerHTML = pairHTML(left, right, lL, rL);
 }
 
 function pairHTML(left, right, lL, rL) {
   function slot(p, label) {
-    if (!p) return `<div class="compare-photo-wrap"><div class="compare-empty-slot">Нет фото</div><div class="compare-label">${label}</div></div>`;
-    return `<div class="compare-photo-wrap">
-      <img class="compare-photo" src="${p.src}" onclick="openCompareFs()">
-      <div class="compare-label">${label}<br><span style="color:var(--text3);font-size:10px">${formatDateShortRU(p.date)}</span></div>
-    </div>`;
+    if (!p) return '<div class="compare-photo-wrap"><div class="compare-empty-slot">\u041d\u0435\u0442 \u0444\u043e\u0442\u043e</div><div class="compare-label">' + label + '</div></div>';
+    return '<div class="compare-photo-wrap">'
+      + '<img class="compare-photo" src="' + p.src + '" onclick="openCompareFs()">'
+      + '<div class="compare-label">' + label + '<br><span style="color:var(--text3);font-size:10px">' + formatDateShortRU(p.date) + '</span></div>'
+      + '</div>';
   }
-  const hasTwo = left && right;
-  const btnHTML = hasTwo
-    ? `<button class="open-compare-btn" onclick="openCompareFs()">🔍 Открыть сравнение на весь экран</button>`
-    : '';
-  // Store for fullscreen use
-  window._compareLeft = left;
-  window._compareRight = right;
-  window._compareLeftLabel = lL;
-  window._compareRightLabel = rL;
-  return `<div class="compare-pair">${slot(left,lL)}${slot(right,rL)}</div>${btnHTML}`;
+  window._compareLeft  = left;  window._compareLeftLabel  = lL;
+  window._compareRight = right; window._compareRightLabel = rL;
+  var btnHTML = (left && right) ? '<button class="open-compare-btn" onclick="openCompareFs()">\ud83d\udd0d \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0441\u0440\u0430\u0432\u043d\u0435\u043d\u0438\u0435 \u043d\u0430 \u0432\u0435\u0441\u044c \u044d\u043a\u0440\u0430\u043d</button>' : '';
+  return '<div class="compare-pair">' + slot(left,lL) + slot(right,rL) + '</div>' + btnHTML;
+}
+
+function openProgressLightbox(id) {
+  var p = state.progressPhotos.filter(function(x) { return x.id === id; })[0];
+  if (!p) return;
+  document.getElementById('lightboxImg').src = p.src;
+  document.getElementById('lightboxImg').style.display = 'block';
+  document.getElementById('lightboxVideo').style.display = 'none';
+  document.getElementById('lightbox').classList.add('open');
+  history.pushState({ lb: true }, '');
+}
+
+function deletePhoto(id) {
+  if (!confirm('\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u044d\u0442\u043e \u0444\u043e\u0442\u043e?')) return;
+  dbDeletePhoto(id).then(function() {
+    state.progressPhotos = state.progressPhotos.filter(function(p) { return p.id !== id; });
+    savePhotoIndex();
+    renderProgress();
+    showToast('\u0424\u043e\u0442\u043e \u0443\u0434\u0430\u043b\u0435\u043d\u043e');
+  });
+}
+
+// ============================================================
+// PHOTO UPLOAD
+// ============================================================
+var pendingFiles = [];
+
+function savePhotoIndex() {
+  try {
+    var index = state.progressPhotos.map(function(p) { return { id: p.id, date: p.date, view: p.view }; });
+    localStorage.setItem('gym_photo_index', JSON.stringify(index));
+  } catch(e) {}
+}
+
+function loadPhotos() {
+  return dbLoadAllPhotos().then(function(allFromDB) {
+    try {
+      var index = JSON.parse(localStorage.getItem('gym_photo_index') || '[]');
+      var byId = {};
+      allFromDB.forEach(function(p) { byId[p.id] = p; });
+      state.progressPhotos = index.map(function(meta) { return byId[meta.id]; }).filter(Boolean);
+    } catch(e) { state.progressPhotos = []; }
+  }).catch(function() { state.progressPhotos = []; });
+}
+
+document.getElementById('uploadZone').addEventListener('click', function() {
+  var inp = document.getElementById('progressFileInput');
+  inp.value = '';
+  inp.click();
+});
+
+document.getElementById('progressFileInput').addEventListener('change', function() {
+  pendingFiles = Array.from(this.files);
+  if (!pendingFiles.length) return;
+  var firstName   = pendingFiles[0].name;
+  var parsedDate  = parseDateFromFilename(firstName);
+  var today       = todayStr();
+  document.getElementById('photoDate').value = parsedDate || today;
+  var hint = document.getElementById('photoDateHint');
+  if (hint) {
+    if (parsedDate) {
+      hint.style.color = 'var(--accent)';
+      hint.textContent = '\ud83d\udcc5 \u0414\u0430\u0442\u0430 \u0438\u0437 \u0438\u043c\u0435\u043d\u0438 \u0444\u0430\u0439\u043b\u0430: ' + formatDateRU(parsedDate);
+    } else {
+      hint.style.color = 'var(--text3)';
+      hint.textContent = '\u0418\u043c\u044f \u0444\u0430\u0439\u043b\u0430: ' + firstName + ' \u2014 \u0434\u0430\u0442\u0430 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430, \u0432\u044b\u0431\u0435\u0440\u0438 \u0432\u0440\u0443\u0447\u043d\u0443\u044e';
+      setTimeout(function() { document.getElementById('photoDate').focus(); }, 300);
+    }
+  }
+  document.querySelectorAll('#viewPickRow .view-chip').forEach(function(b,i) { b.classList.toggle('active', i===0); });
+  document.getElementById('photoMetaModal').classList.add('open');
+});
+
+function pickView(btn) {
+  btn.closest('div').querySelectorAll('.view-chip').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+function savePhotoMeta() {
+  var date  = document.getElementById('photoDate').value;
+  var viewBtn = document.querySelector('#viewPickRow .view-chip.active');
+  var view  = viewBtn ? viewBtn.getAttribute('data-pick') : 'front';
+  var views = ['front','side','back'];
+  var filesToProcess = pendingFiles.slice();
+  pendingFiles = [];
+  var total = filesToProcess.length;
+  var done  = 0;
+  document.getElementById('photoMetaModal').classList.remove('open');
+
+  filesToProcess.forEach(function(file, i) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var photo = {
+        id:   Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2),
+        src:  e.target.result,
+        date: date,
+        view: total > 1 ? views[i % 3] : view
+      };
+      dbSavePhoto(photo).then(function() {
+        state.progressPhotos.push(photo);
+        done++;
+        if (done === total) {
+          savePhotoIndex();
+          renderProgress();
+          showToast('\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u043e ' + done + ' \u0444\u043e\u0442\u043e');
+        }
+      });
+    };
+    reader.onerror = function() { done++; };
+    reader.readAsDataURL(file);
+  });
 }
 
 // ============================================================
 // FULLSCREEN COMPARE
 // ============================================================
-let cfsIndex = 0;
-let cfsPhotos = [];
-let cfsLabels = [];
-const APP_VERSION = '1.7';
-
-let cfsTouchStartX = 0;
-let cfsTouchStartY = 0;
-let cfsZoomScale = 1;
+var cfsPhotos = [], cfsLabels = [], cfsIndex = 0, cfsZoomScale = 1;
 
 function openCompareFs() {
-  const left = window._compareLeft;
-  const right = window._compareRight;
+  var left  = window._compareLeft;
+  var right = window._compareRight;
   if (!left && !right) return;
-
   cfsPhotos = [left, right].filter(Boolean);
-  cfsLabels = [window._compareLeftLabel, window._compareRightLabel].filter((l,i) => cfsPhotos[i]);
-  cfsIndex = 0;
-  cfsZoomScale = 1;
+  cfsLabels = [window._compareLeftLabel, window._compareRightLabel].filter(function(l, i) { return !!cfsPhotos[i]; });
+  cfsIndex = 0; cfsZoomScale = 1;
 
-  const track = document.getElementById('compareFsTrack');
-  track.innerHTML = cfsPhotos.map((p, i) =>
-    `<div class="compare-fs-slide" id="cfsSlide${i}">
-      <img src="${p.src}" id="cfsImg${i}" draggable="false">
-    </div>`
-  ).join('');
+  var track = document.getElementById('compareFsTrack');
+  track.innerHTML = cfsPhotos.map(function(p, i) {
+    return '<div class="compare-fs-slide" id="cfsSlide' + i + '"><img src="' + p.src + '" id="cfsImg' + i + '" draggable="false"></div>';
+  }).join('');
 
   updateCfsUI();
   document.getElementById('compareFs').classList.add('open');
   document.body.style.overflow = 'hidden';
-
-  // Push history state so back button closes fullscreen
   history.pushState({ cfs: true }, '');
-
-  setTimeout(() => {
-    const hint = document.getElementById('compareFsHint');
+  setTimeout(function() {
+    var hint = document.getElementById('compareFsHint');
     if (hint) hint.style.opacity = '0';
   }, 2000);
 }
@@ -1193,276 +1395,145 @@ function closeCompareFs() {
   document.getElementById('compareFs').classList.remove('open');
   document.body.style.overflow = '';
   cfsZoomScale = 1;
-  // Reset zoom on all images
-  cfsPhotos.forEach((_, i) => {
-    const img = document.getElementById('cfsImg' + i);
-    if (img) img.style.transform = 'scale(1)';
+  cfsPhotos.forEach(function(_, i) {
+    var img = document.getElementById('cfsImg' + i);
+    if (img) { img.style.transform = 'scale(1)'; img.style.transformOrigin = 'center center'; }
   });
 }
 
-// Back button closes fullscreen compare or lightbox
-window.addEventListener('popstate', e => {
+function updateCfsUI() {
+  var track = document.getElementById('compareFsTrack');
+  track.style.transform = 'translateX(-' + (cfsIndex * 100) + 'vw)';
+  var p = cfsPhotos[cfsIndex];
+  document.getElementById('compareFsLabel').textContent = cfsLabels[cfsIndex] || '';
+  document.getElementById('compareFsDate').textContent  = p ? formatDateRU(p.date) : '';
+  document.getElementById('compareFsDots').innerHTML = cfsPhotos.map(function(_, i) {
+    return '<div class="compare-fs-dot ' + (i === cfsIndex ? 'active' : '') + '"></div>';
+  }).join('');
+}
+
+// Back button
+history.replaceState({ base: true }, '');
+window.addEventListener('popstate', function(e) {
   if (document.getElementById('compareFs').classList.contains('open')) {
     closeCompareFs();
   } else if (document.getElementById('lightbox').classList.contains('open')) {
     closeLightbox();
   } else {
-    // Push state again to prevent actual exit
     history.pushState(null, '');
   }
 });
 
-// On app load, push a base state so back never exits immediately
-history.replaceState({ base: true }, '');
+// Touch for fullscreen compare — attached once
+(function() {
+  var fs = document.getElementById('compareFs');
+  var slideState = {};
+  var touchStartX = 0, touchStartY = 0;
+  var isPinching = false, pinchStartDist = 0, pinchStartScale = 1, pinchMidX = 0, pinchMidY = 0;
+  var lastTap = 0;
 
-function updateCfsUI() {
-  const track = document.getElementById('compareFsTrack');
-  track.style.transform = `translateX(-${cfsIndex * 100}vw)`;
-  const p = cfsPhotos[cfsIndex];
-  document.getElementById('compareFsLabel').textContent = cfsLabels[cfsIndex] || '';
-  document.getElementById('compareFsDate').textContent = p ? formatDateRU(p.date) : '';
-  const dots = document.getElementById('compareFsDots');
-  dots.innerHTML = cfsPhotos.map((_, i) =>
-    `<div class="compare-fs-dot ${i === cfsIndex ? 'active' : ''}"></div>`
-  ).join('');
-}
-
-// Touch handlers — attached once at startup
-(function setupCfsTouch() {
-  const fs = document.getElementById('compareFs');
-  let touchStartX = 0, touchStartY = 0;
-  let pinchStartDist = 0, pinchStartScale = 1;
-  let pinchOriginX = 0, pinchOriginY = 0;
-  let currentTranslateX = 0, currentTranslateY = 0;
-  let lastTap = 0;
-
-  function getImg() { return document.getElementById('cfsImg' + cfsIndex); }
-
-  function applyTransform(img, scale, tx, ty) {
+  function getS(idx) {
+    if (!slideState[idx]) slideState[idx] = { scale:1, tx:0, ty:0 };
+    return slideState[idx];
+  }
+  function applyT(idx) {
+    var img = document.getElementById('cfsImg' + idx);
+    if (!img) return;
+    var s = getS(idx);
     img.style.transformOrigin = '0 0';
-    img.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    img.style.transform = 'translate(' + s.tx + 'px,' + s.ty + 'px) scale(' + s.scale + ')';
+  }
+  function resetSlide(idx) {
+    slideState[idx] = { scale:1, tx:0, ty:0 };
+    var img = document.getElementById('cfsImg' + idx);
+    if (img) { img.style.transition = 'transform 0.2s'; img.style.transformOrigin = 'center center'; img.style.transform = 'scale(1)'; }
+    if (idx === cfsIndex) cfsZoomScale = 1;
   }
 
-  function resetTransform(img) {
-    cfsZoomScale = 1; currentTranslateX = 0; currentTranslateY = 0;
-    img.style.transformOrigin = 'center center';
-    img.style.transform = 'scale(1)';
-  }
-
-  fs.addEventListener('touchstart', e => {
+  fs.addEventListener('touchstart', function(e) {
     if (e.touches.length === 2) {
-      pinchStartDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      pinchStartScale = cfsZoomScale;
-      // Pinch origin in screen coords
-      pinchOriginX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      pinchOriginY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      isPinching = true;
+      pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      pinchStartScale = getS(cfsIndex).scale;
+      pinchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      pinchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      e.preventDefault();
       return;
     }
+    isPinching = false;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
-  }, { passive: true });
+  }, { passive: false });
 
-  fs.addEventListener('touchmove', e => {
-    if (e.touches.length === 2) {
+  fs.addEventListener('touchmove', function(e) {
+    if (e.touches.length === 2 && isPinching) {
       e.preventDefault();
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const newScale = Math.min(5, Math.max(1, pinchStartScale * (dist / pinchStartDist)));
-      const img = getImg();
-      if (!img) return;
-
-      // Compute translate so zoom origin stays at pinch center
-      const rect = img.getBoundingClientRect();
-      const ox = pinchOriginX - rect.left - currentTranslateX;
-      const oy = pinchOriginY - rect.top - currentTranslateY;
-      const scaleDelta = newScale / cfsZoomScale;
-      currentTranslateX -= ox * (scaleDelta - 1);
-      currentTranslateY -= oy * (scaleDelta - 1);
+      var dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      var newScale = Math.min(6, Math.max(1, pinchStartScale * (dist / pinchStartDist)));
+      var s = getS(cfsIndex);
+      var slide = document.getElementById('cfsSlide' + cfsIndex);
+      var rect = slide ? slide.getBoundingClientRect() : { left:0, top:0 };
+      var fixX = pinchMidX - rect.left;
+      var fixY = pinchMidY - rect.top;
+      s.tx = fixX - (fixX - s.tx) * (newScale / s.scale);
+      s.ty = fixY - (fixY - s.ty) * (newScale / s.scale);
+      s.scale = newScale;
       cfsZoomScale = newScale;
-      applyTransform(img, cfsZoomScale, currentTranslateX, currentTranslateY);
-      return;
+      var img = document.getElementById('cfsImg' + cfsIndex);
+      if (img) { img.style.transition = 'none'; applyT(cfsIndex); }
     }
   }, { passive: false });
 
-  fs.addEventListener('touchend', e => {
-    // Double tap — reset zoom
-    const now = Date.now();
-    if (now - lastTap < 280 && e.changedTouches.length === 1) {
-      const img = getImg();
-      if (img) resetTransform(img);
-      lastTap = 0;
-      return;
+  fs.addEventListener('touchend', function(e) {
+    isPinching = false;
+    var now = Date.now();
+    if (now - lastTap < 300 && e.changedTouches.length === 1) {
+      resetSlide(cfsIndex); lastTap = 0; return;
     }
     lastTap = now;
-
-    // Swipe to change photo (only when not zoomed)
-    if (e.changedTouches.length === 1 && e.touches.length === 0 && cfsZoomScale <= 1) {
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+    if (e.changedTouches.length === 1 && e.touches.length === 0 && cfsZoomScale <= 1.05) {
+      var dx = e.changedTouches[0].clientX - touchStartX;
+      var dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
       if (Math.abs(dx) > 50 && Math.abs(dx) > dy) {
-        const prevIndex = cfsIndex;
+        var prev = cfsIndex;
         if (dx < 0 && cfsIndex < cfsPhotos.length - 1) cfsIndex++;
         else if (dx > 0 && cfsIndex > 0) cfsIndex--;
-        if (cfsIndex !== prevIndex) {
-          // Reset zoom on previous
-          const prevImg = document.getElementById('cfsImg' + prevIndex);
-          if (prevImg) resetTransform(prevImg);
-          currentTranslateX = 0; currentTranslateY = 0;
-          updateCfsUI();
-        }
+        if (cfsIndex !== prev) { resetSlide(prev); updateCfsUI(); }
       }
     }
   }, { passive: true });
 })();
 
-async function deletePhoto(id) {
-  if (!confirm('Удалить это фото?')) return;
-  await dbDeletePhoto(id);
-  state.progressPhotos = state.progressPhotos.filter(p => p.id !== id);
-  savePhotoIndex();
-  renderProgress();
-  showToast('Фото удалено');
-}
-
-function openProgressLightbox(id){
-  const p=state.progressPhotos.find(x=>x.id===id);
-  if(!p) return;
-  document.getElementById('lightboxImg').src=p.src;
-  document.getElementById('lightboxImg').style.display='block';
-  document.getElementById('lightboxVideo').style.display='none';
-  document.getElementById('lightbox').classList.add('open');
-}
-
-let pendingFiles=[];
-
-document.getElementById('uploadZone').addEventListener('click', () => {
-  const inp = document.getElementById('progressFileInput');
-  inp.value = ''; // reset BEFORE opening so same file can be selected again
-  inp.click();
-});
-
-document.getElementById('progressFileInput').addEventListener('change', function(){
-  pendingFiles = Array.from(this.files);
-  if (!pendingFiles.length) return;
-
-  // Try to parse date from first file's name
-  const firstName = pendingFiles[0].name;
-  const parsedDate = parseDateFromFilename(firstName);
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-
-  document.getElementById('photoDate').value = parsedDate || todayStr;
-
-  const hint = document.getElementById('photoDateHint');
-  if (hint) {
-    if (parsedDate) {
-      hint.style.color = 'var(--accent)';
-      hint.textContent = `📅 Дата из имени файла: ${formatDateRU(parsedDate)}`;
-    } else {
-      hint.style.color = 'var(--text3)';
-      hint.textContent = `Имя файла: ${firstName} — дата не найдена, выбери вручную`;
-      setTimeout(() => document.getElementById('photoDate').focus(), 300);
-    }
-  }
-
-  document.querySelectorAll('#viewPickRow .view-chip').forEach((b,i)=>b.classList.toggle('active',i===0));
-  document.getElementById('photoMetaModal').classList.add('open');
-});
-
-function pickView(btn){
-  btn.closest('div').querySelectorAll('.view-chip').forEach(b=>b.classList.remove('active'));
+// ============================================================
+// COMPARE / VIEW TABS
+// ============================================================
+document.getElementById('compareTabs').addEventListener('click', function(e) {
+  var btn = e.target.closest('.compare-tab');
+  if (!btn) return;
+  document.querySelectorAll('.compare-tab').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
-}
-
-async function savePhotoMeta(){
-  const date = document.getElementById('photoDate').value;
-  const view = document.querySelector('#viewPickRow .view-chip.active')?.getAttribute('data-pick')||'front';
-  const views = ['front','side','back'];
-  document.getElementById('photoMetaModal').classList.remove('open');
-
-  // Capture files NOW before clearing pendingFiles
-  const filesToProcess = [...pendingFiles];
-  pendingFiles = [];
-  const total = filesToProcess.length;
-  let done = 0;
-
-  filesToProcess.forEach((file, i) => {
-    const reader = new FileReader();
-    reader.onload = async e => {
-      const photo = {
-        id: Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2),
-        src: e.target.result,
-        date,
-        view: total > 1 ? views[i % 3] : view
-      };
-      await dbSavePhoto(photo);
-      state.progressPhotos.push(photo);
-      done++;
-      if (done === total) {
-        savePhotoIndex();
-        renderProgress();
-        showToast(`Добавлено ${done} фото`);
-      }
-    };
-    reader.onerror = () => { done++; showToast('Ошибка чтения файла'); };
-    reader.readAsDataURL(file);
-  });
-}
-
-// Save photo metadata index (without src) to localStorage
-function savePhotoIndex() {
-  try {
-    const index = state.progressPhotos.map(p => ({ id: p.id, date: p.date, view: p.view }));
-    localStorage.setItem('gym_photo_index', JSON.stringify(index));
-  } catch(e) {}
-}
-
-// Load photos: index from localStorage, src from IndexedDB
-async function loadPhotos() {
-  try {
-    const index = JSON.parse(localStorage.getItem('gym_photo_index') || '[]');
-    if (!index.length) return;
-    const allFromDB = await dbLoadAllPhotos();
-    const byId = {};
-    allFromDB.forEach(p => byId[p.id] = p);
-    state.progressPhotos = index.map(meta => byId[meta.id]).filter(Boolean);
-  } catch(e) {
-    state.progressPhotos = [];
-  }
-}
-
-document.getElementById('compareTabs').addEventListener('click',e=>{
-  const btn=e.target.closest('.compare-tab');
-  if(!btn) return;
-  document.querySelectorAll('.compare-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  state.compareMode=btn.dataset.mode;
+  state.compareMode = btn.dataset.mode;
   renderProgress();
 });
 
-document.getElementById('viewChips').addEventListener('click',e=>{
-  const chip=e.target.closest('.view-chip');
-  if(!chip) return;
-  document.querySelectorAll('#viewChips .view-chip').forEach(c=>c.classList.remove('active'));
+document.getElementById('viewChips').addEventListener('click', function(e) {
+  var chip = e.target.closest('.view-chip');
+  if (!chip) return;
+  document.querySelectorAll('#viewChips .view-chip').forEach(function(c) { c.classList.remove('active'); });
   chip.classList.add('active');
-  state.compareView=chip.dataset.view;
+  state.compareView = chip.dataset.view;
   renderProgress();
 });
 
 // ============================================================
 // TOAST
 // ============================================================
-let toastTimer;
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
+var toastTimer;
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 2500);
 }
 
 // ============================================================
@@ -1471,16 +1542,13 @@ function showToast(msg){
 loadState();
 renderDayTabs();
 document.getElementById('appVersion').textContent = 'v' + APP_VERSION;
-const todayMap={0:'sat',1:'mon',2:'tue',3:'wed',4:'thu',5:'fri',6:'sat'};
+var todayMap = {0:'sat',1:'mon',2:'tue',3:'wed',4:'thu',5:'fri',6:'sat'};
 selectDay(WORKOUTS[todayMap[new Date().getDay()]] ? todayMap[new Date().getDay()] : 'mon');
 
-// Load photos from IndexedDB asynchronously
-loadPhotos().then(() => {
-  // If progress tab is already active, re-render it
-  if (document.getElementById('screen-progress').classList.contains('active')) {
-    renderProgress();
-  }
-}).catch(e => console.error('Photo load error:', e));
+loadPhotos().then(function() {
+  if (document.getElementById('screen-progress').classList.contains('active')) renderProgress();
+}).catch(function(e) { console.error('Photo load error:', e); });
+
 </script>
 </body>
 </html>
