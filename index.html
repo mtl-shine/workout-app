@@ -575,107 +575,167 @@
 
 <script>
 
-const APP_VERSION = '1.8';
+var APP_VERSION = '1.9';
 
 // ============================================================
-// EXERCISE DATABASE
+// EXERCISES
 // ============================================================
-const EXERCISES = {
-  ikry:             { name:'Икры сидя в тренажёре', weight:30, weightStep:0.25, weightUnit:'кг', tech:'Максимальный акцент на растяжении и подъём с давлением на сустав большого пальца.', media:[] },
-  press:            { name:'Пресс в тренажёре', weight:22.5, weightStep:0.25, weightUnit:'кг', tech:'Напрячь пресс и вдавить поясницу — стараться не отрывать её от плоскости тренажёра на всём протяжении подходов.', media:[] },
-  v_podyomy:        { name:'V-подъёмы', weight:2, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
-  pulover:          { name:'Пуловер с гантелью поперёк скамьи', weight:7, weightStep:0.25, weightUnit:'кг', tech:'Прямой угол в коленях. Разобрать рёбра, растянуть лопатки. Наверх — максимально собраться, собрать рёбра, пресс. Корпус параллельно полу.\n\nПодкручивать копчик и сокращать пресс — в верхней точке рёбра приблизить к тазовым костям.\n\nСуть: удерживать лопатками и зубчатыми, сопротивляясь весу и гравитации.\n\nМедленное подконтрольное опускание гантели за голову на почти прямых руках (локти мягкие и развёрнуты; запястье не ниже локтя).', media:[] },
-  vytyazhka_1:      { name:'Горизонтальная вытяжка по 1 руке', weight:27.5, weightStep:0.25, weightUnit:'кг', tech:'Начинать ложиться противоположной стороной от веса: сначала бок поясницы, потом бок грудного отдела и одна лопатка, потом одно плечо.\n\nВ последнюю очередь — положить второе плечо на пол и прижать вторую лопатку (та сторона, где вес).\n\nВверх на выдохе — всё наоборот: начинать вытягиваться стороной где вес.\n\nЗамедлиться везде минимум вдвое.', media:[] },
-  vytyazhka_2:      { name:'Вытяжка с прямой палочкой двумя руками', weight:37.5, weightStep:0.25, weightUnit:'кг', tech:'Опускаться аккуратно с круглой спиной: сначала поясница, потом грудной отдел и лопатки, последними ложатся плечи.\n\nНа выдохе позволить себя вытянуть весу — корпусом тянуться вверх.\n\nВ верхней точке замирать на пару секунд.', media:[] },
-  zhim_lezha:       { name:'Жим лёжа со штангой', weight:7.5, weightStep:0.25, weightUnit:'кг (блины)', tech:'Браться шире — прямой или чуть тупой угол в нижней точке между локтем и запястьем.\n\nПри снятии грифа проверни запястье вверх, чтобы гриф не лежал на суставе. Так хват будет жёстче и снимешь часть нагрузки с трицепса.', media:[] },
-  tyaga_verh_parallel: { name:'Тяга верхнего блока широким параллельным хватом', weight:27.5, weightStep:0.25, weightUnit:'кг', tech:'Не отпускать до конца. Спина и корпус — прямая линия с тросом, подкрутить копчик, напрячь пресс. Тянуть вниз чётко, в процессе отклоняться чуть.\n\nДвижение начинается со спины — тянуть спиной, руками лишь дотягивать.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс сильно: рёбра на одной линии с лобком.', media:[] },
-  otzhimaniya:      { name:'Отжимания', weight:null, weightStep:null, weightUnit:'', weightDisplay:'макс', tech:'', media:[] },
-  prised_ganteli:   { name:'Присед с гантелью на бёдрах и блинами под пятки', weight:15, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
-  yagodichny_most:  { name:'Ягодичный мост в тренажёре', weight:42.5, weightStep:0.25, weightUnit:'кг', tech:'Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.', media:[] },
-  zhim_platformy:   { name:'Жим горизонтальной платформы высокой постановкой по 1 ноге', weight:25, weightStep:0.25, weightUnit:'кг', tech:'Поставить стопу на уровень груди. Плотно прижать поясницу, откинуться на спинке.\n\nПостановка ноги высокая, стопа на середине платформы. Стопу чуть ниже — 3–5 см.\n\n2-ю ногу выпрямить и просунуть под дырку — пусть упирается в стену.', media:[] },
-  podtyagivaniya:   { name:'Подтягивания в гравитроне', weight:19, weightStep:0.25, weightUnit:'кг противовес', tech:'Не снимать нагрузку со спины, не отпускать суставы до конца, не висеть.\n\nОпускаться до момента натяжения подмышками. Из этой точки — грудью вверх.\n\nОпускаться ещё чуть ниже — добиться растяжения и подтягиваться с растянутой позиции.', media:[] },
-  tyaga_verh_klassik: { name:'Тяга верхнего блока широким классическим хватом', weight:27.5, weightStep:0.25, weightUnit:'кг', tech:'Не отпускать до конца. Спина и корпус — прямая линия с тросом, подкрутить копчик, напрячь пресс. Тянуть вниз чётко, в процессе отклоняться чуть.\n\nДвижение начинается со спины — тянуть спиной, руками лишь дотягивать.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс сильно: рёбра на одной линии с лобком.', media:[] },
-  tyaga_gor:        { name:'Тяга горизонтального блока', weight:27.5, weightStep:0.25, weightUnit:'кг', tech:'Не должно быть рывка руками. Руки к корпусу привести за счёт мышц спины.\n\nЧуть наклониться вперёд и сосредоточиться на том, чтобы при тяге на себя не отклонять назад корпус.', media:[] },
-  zhimy_gantelei:   { name:'Жимы гантелей сидя от груди вверх на плечи', weight:7, weightStep:0.25, weightUnit:'кг', tech:'Когда опускаешь вниз — локти закручивать вперёд перед корпусом.', media:[] },
-  protyazhka:       { name:'Протяжка лёжа с нижнего блока кроссовера', weight:17.5, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
-  tyaga_delt:       { name:'Тяга гантелей на задние дельты', weight:7, weightStep:0.25, weightUnit:'кг', tech:'Не дожимать пик.\n\nЗадняя дельта должна работать без существенного движения лопаток. Ссутулиться, разобрать лопатки, выключить их вообще. Тянуть только локти вверх — думать о локтях вверх и к ушам.\n\nВниз — именно отпустить подконтрольно, попытаться лопатками обнять лавку. Отпускать больше, растягивать задние дельты.', media:[] },
-  most:             { name:'Мост', weight:42.5, weightStep:0.25, weightUnit:'кг', tech:'Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.', media:[] },
-  zhim_vert_platformy: { name:'Жим вертикальной платформы', weight:50, weightStep:0.25, weightUnit:'кг', tech:'Стопы на ширине плеч на верхнем крае платформы, носки чуть кнаружи.', media:[] },
-  sshgivaniya:      { name:'Сшагивания с тумбы у опоры с весом в одной руке', weight:10, weightStep:0.25, weightUnit:'кг', tech:'', media:[] },
-  rumynskaya:       { name:'Румынская в смите', weight:null, weightStep:0.25, weightUnit:'кг', weightDisplay:'—', tech:'Держать спину прямо, отводить таз назад. Корпус идёт за весом для баланса.\n\nПримерно до уровня колена — подсогнуть колено, микроподсед, ещё отвести таз назад. Встать ягодицей.\n\nОт копчика до затылка — прямая линия. Сначала прижать подбородок, и только потом таз назад.', media:[] },
-  glyut:            { name:'Глют', weight:20, weightStep:0.25, weightUnit:'кг', tech:'Упереть опорную ногу в подушку. Стопа чётко под тазом.\n\nДвижущуюся ногу — ближе к середине платформы, максимум по верху. Максимально подконтрольно сократить вниз и вытолкнуть ягодицей, не слишком высоко.\n\nСтопа чуть вбок, носок чуть наружу.', media:[] },
-  razvedeniya:      { name:'Отведения с гантелью', weight:40, weightStep:0.25, weightUnit:'кг', tech:'Двинуть таз вперёд, ближе к краю подушки, угол корпуса тупой. Опереться на пятку.\n\nПриподнять таз на мм, еле касаться подушки.\n\nСледующий этап: вставать в мост, упираясь лопатками.', media:[] },
-  myachik:          { name:'Мячик (3 положения)', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'1-е положение — по верху лопаток.\n2-е положение — глубоко дышать и под собственной тяжестью опускаться (не через силу и боль).\n3-е положение — под нижней резинкой топа. Давить прессом поясницу в пол, не расслаблять кор.', media:[] },
-  lodochka:         { name:'Лодочка (hollow hold)', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'Поясница прижата к полу. Рёбра вниз. Таз слегка подкручен.', media:[], isTime:true },
-  obratnaya_planka: { name:'Обратная планка с поднятием ног', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'Таз слегка подкрутить. Собрать, опустить рёбра. Не прогибаться в пояснице.\n\nМежду рёбрами сократить мышцы — думать в сторону треугольника между рёбрами.', media:[], isTime:true },
-  vypady:           { name:'Выпады (обычные и глубокие)', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[] },
-  rastyazhka_divana:{ name:'Растяжка с дивана', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[], isTime:true },
-  skladochka:       { name:'Складочка', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[] },
-  vysokaya_planka:  { name:'Высокая планка', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[], isTime:true },
-  stoika_na_rukah:  { name:'Стойка на руках у стены', weight:null, weightStep:null, weightUnit:'', weightDisplay:'', tech:'', media:[], isTime:true }
+var EXERCISES = {
+  // Общие / ежедневные
+  dyhatelnoe: { name: 'Дыхательное упражнение', weight: null, weightStep: null, weightUnit: '', weightDisplay: '',
+    tech: '1 вариант: дыхание на каждую сторону рёбер — 10 раз.\n2 вариант: дыхание животом — 15 раз.', media: [] },
+  lopatki: { name: 'Упражнение на лопатки', weight: null, weightStep: null, weightUnit: '', weightDisplay: '',
+    tech: 'Вниз-вверх, в сторону, диагональ — по 10 повторений каждого вида на каждую лопатку.', media: [] },
+  bloki_sverkhu: { name: 'Блоки сверху', weight: null, weightStep: null, weightUnit: '', weightDisplay: '', tech: '', media: [] },
+  bloki_podmyshki: { name: 'Блоки по линии подмышек', weight: null, weightStep: null, weightUnit: '', weightDisplay: '', tech: '', media: [] },
+  zavedenie_blinka: { name: 'Заведение блинчика на грудной', weight: 2.5, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  prokhodka_fermera: { name: 'Проходка фермера', weight: 5, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+
+  // Зал — начало тренировки
+  ikry: { name: 'Икры сидя в тренажёре', weight: 30, weightStep: 0.25, weightUnit: 'кг',
+    tech: 'Максимальный акцент на растяжении и подъём с давлением на сустав большого пальца.', media: [] },
+  press: { name: 'Пресс в тренажёре', weight: 22.5, weightStep: 0.25, weightUnit: 'кг',
+    tech: 'Напрячь пресс и вдавить поясницу — стараться не отрывать её от плоскости тренажёра на всём протяжении подходов.', media: [] },
+
+  // Понедельник — ФулБади
+  zhim_lezha: { name: 'Жим лёжа со штангой', weight: 7.5, weightStep: 0.25, weightUnit: 'кг (блины)',
+    tech: 'Браться шире — прямой или чуть тупой угол в нижней точке между локтем и запястьем.\n\nПри снятии грифа проверни запястье вверх, чтобы гриф не лежал на суставе.', media: [] },
+  tyaga_verh_parallel: { name: 'Тяга верхнего блока широким параллельным хватом', weight: 27.5, weightStep: 0.25, weightUnit: 'кг',
+    tech: 'Не отпускать до конца. Спина и корпус — прямая линия с тросом, подкрутить копчик, напрячь пресс. Тянуть вниз чётко.\n\nДвижение начинается со спины — тянуть спиной, руками лишь дотягивать.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс: рёбра на одной линии с лобком.', media: [] },
+  pulover: { name: 'Пуловер с гантелью поперёк скамьи', weight: 7, weightStep: 0.25, weightUnit: 'кг',
+    tech: 'Прямой угол в коленях. Разобрать рёбра, растянуть лопатки. Наверх — собрать рёбра, пресс. Корпус параллельно полу.\n\nПодкручивать копчик и сокращать пресс — в верхней точке рёбра приблизить к тазовым костям.\n\nМедленное подконтрольное опускание гантели за голову на почти прямых руках (локти мягкие и развёрнуты; запястье не ниже локтя).', media: [] },
+  otzhimaniya: { name: 'Отжимания', weight: null, weightStep: null, weightUnit: '', weightDisplay: 'макс', tech: '', media: [] },
+  yagodichny_most: { name: 'Ягодичный мост в тренажёре', weight: 42.5, weightStep: 0.25, weightUnit: 'кг',
+    tech: 'Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.', media: [] },
+  zhim_vert_platformy: { name: 'Жим вертикальной платформы', weight: 50, weightStep: 0.25, weightUnit: 'кг',
+    tech: 'Стопы на ширине плеч на верхнем крае платформы, носки чуть кнаружи.', media: [] },
+  kikbeki: { name: 'Кикбэки в кроссовере', weight: 22.5, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+
+  // Среда — Верх
+  podtyagivaniya: { name: 'Подтягивания в гравитроне', weight: 19, weightStep: 0.25, weightUnit: 'кг противовес',
+    tech: 'Не снимать нагрузку со спины, не отпускать суставы до конца, не висеть.\n\nОпускаться до момента натяжения подмышками. Из этой точки — грудью вверх.\n\nОпускаться ещё чуть ниже — добиться растяжения, подтягиваться с растянутой позиции.', media: [] },
+  vert_tyaga_1ruka: { name: 'Вертикальная тяга в кроссовере по 1й руке', weight: 10, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  tyaga_kross_delta: { name: 'Тяга в кроссовере на заднюю дельту в наклоне по 1й руке', weight: 5, weightStep: 0.25, weightUnit: 'кг',
+    tech: 'Задняя дельта должна работать без существенного движения лопаток. Ссутулиться, разобрать лопатки, выключить их. Тянуть только локти вверх — к ушам.\n\nВниз — отпустить подконтрольно, попытаться лопатками обнять лавку.', media: [] },
+  protyazhka: { name: 'Протяжка с нижнего блока лёжа', weight: 17.5, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  otvedeniya_1ruka: { name: 'Отведения гантелей сидя по 1й руке', weight: 3, weightStep: 0.25, weightUnit: 'кг',
+    tech: 'Задняя дельта должна работать без существенного движения лопаток. Ссутулиться, разобрать лопатки, выключить их. Тянуть только локти вверх — к ушам.\n\nВниз — отпустить подконтрольно, попытаться лопатками обнять лавку.', media: [] },
+  podyomy_nog_vise: { name: 'Подъёмы ног в висе', weight: null, weightStep: null, weightUnit: '', weightDisplay: 'макс', tech: '', media: [] },
+
+  // Пятница — Ягодицы
+  bolgarskie_smit: { name: 'Болгарские выпады в Смите', weight: 5, weightStep: 0.25, weightUnit: 'кг',
+    tech: 'В пике таз оставлять чуть сзади, не снимать нагрузку с ягодицы. Больше вниз садиться, а не назад. Работать как насос (не до конца в обе стороны).', media: [] },
+  rumynskaya: { name: 'Румынская тяга в Смите', weight: 40, weightStep: 0.25, weightUnit: 'кг',
+    tech: 'Держать спину прямо, отводить таз назад. Корпус идёт за весом для баланса.\n\nДо уровня колена — подсогнуть колено, микроподсед, ещё отвести таз назад. Встать ягодицей.\n\nОт копчика до затылка — прямая линия. Сначала прижать подбородок, и только потом таз назад.', media: [] },
+  sgibaniya_trenazher: { name: 'Сгибания в тренажёре лёжа/сидя', weight: 25, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  razvedeniya_naklone: { name: 'Разведения в тренажёре с наклоном вперёд', weight: 50, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+
+  // Домашние
+  myachik: { name: 'Мячик (3 положения)', weight: null, weightStep: null, weightUnit: '', weightDisplay: '',
+    tech: '1-е положение — по верху лопаток.\n2-е положение — глубоко дышать и под собственной тяжестью опускаться (не через силу и боль).\n3-е положение — под нижней резинкой топа. Давить прессом поясницу в пол, не расслаблять кор.', media: [] },
+  vypady: { name: 'Выпады (обычные и глубокие)', weight: null, weightStep: null, weightUnit: '', weightDisplay: '', tech: '', media: [] },
+  rastyazhka_divana: { name: 'Растяжка с дивана', weight: null, weightStep: null, weightUnit: '', weightDisplay: '', tech: '', media: [], isTime: true },
+  skladochka: { name: 'Складочка', weight: null, weightStep: null, weightUnit: '', weightDisplay: '', tech: '', media: [] },
+  vysokaya_planka: { name: 'Высокая планка', weight: null, weightStep: null, weightUnit: '', weightDisplay: '', tech: '', media: [], isTime: true },
+  stoika_na_rukah: { name: 'Стойка на руках у стены', weight: null, weightStep: null, weightUnit: '', weightDisplay: '', tech: '', media: [], isTime: true }
 };
 
 // ============================================================
-// WORKOUT PLAN
+// WORKOUTS
+// superset: { id, reps } — второе упражнение в суперсете
+// homeSection: true — секция выполняется дома до зала
 // ============================================================
-const WORKOUTS = {
-  mon: { label:'ПН', type:'gym', title:'Фулбади', sections:[
-    { label:'Начало тренировки', exercises:[{id:'ikry',sets:2,reps:15},{id:'press',sets:2,reps:12}] },
-    { label:'Основной блок', exercises:[
-      {id:'zhim_lezha',sets:4,reps:'5–8'},{id:'tyaga_verh_parallel',sets:5,reps:10},
-      {id:'otzhimaniya',sets:4,reps:'макс'},{id:'prised_ganteli',sets:4,reps:12},
-      {id:'yagodichny_most',sets:4,reps:10},{id:'zhim_platformy',sets:4,reps:12}
+var WORKOUTS = {
+  mon: { label: 'ПН', type: 'gym', title: 'ФулБади', sections: [
+    { label: 'До зала', homeSection: true, exercises: [
+      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
+      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 вида × 2 лопатки' }
     ]},
-    { label:'Середина тренировки', exercises:[{id:'v_podyomy',sets:2,reps:15},{id:'pulover',sets:2,reps:15}] },
-    { label:'Конец тренировки', exercises:[
-      {id:'vytyazhka_1',sets:2,reps:12,note:'на каждую руку'},{id:'vytyazhka_2',sets:1,reps:15}
-    ]}
-  ]},
-  tue: { label:'ВТ', type:'home', title:'Домашняя', sections:[
-    { label:'Основной блок', exercises:[
-      {id:'myachik',sets:1,reps:'3 пол. x 12'},{id:'lodochka',sets:3,time:40},
-      {id:'obratnaya_planka',sets:3,time:40},{id:'vypady',sets:3,reps:12},
-      {id:'rastyazhka_divana',sets:3,time:30,note:'на каждую ногу'},{id:'skladochka',sets:null,reps:null,note:'по ощущениям'}
-    ]}
-  ]},
-  wed: { label:'СР', type:'gym', title:'Верх', sections:[
-    { label:'Начало тренировки', exercises:[{id:'ikry',sets:2,reps:15},{id:'press',sets:2,reps:12}] },
-    { label:'Основной блок', exercises:[
-      {id:'podtyagivaniya',sets:3,reps:10},{id:'tyaga_verh_klassik',sets:3,reps:10},
-      {id:'tyaga_gor',sets:3,reps:10},{id:'zhimy_gantelei',sets:4,reps:12},
-      {id:'protyazhka',sets:4,reps:12},{id:'tyaga_delt',sets:3,reps:12}
+    { label: 'Начало тренировки', exercises: [
+      { id: 'ikry', sets: 2, reps: 15, superset: { id: 'press', reps: 12 } }
     ]},
-    { label:'Середина тренировки', exercises:[{id:'v_podyomy',sets:2,reps:15},{id:'pulover',sets:2,reps:15}] },
-    { label:'Конец тренировки', exercises:[
-      {id:'vytyazhka_1',sets:2,reps:12,note:'на каждую руку'},{id:'vytyazhka_2',sets:1,reps:15}
+    { label: 'Основной блок', exercises: [
+      { id: 'zhim_lezha', sets: 4, reps: '5–8' },
+      { id: 'tyaga_verh_parallel', sets: 4, reps: 10 },
+      { id: 'pulover', sets: 4, reps: 12, superset: { id: 'otzhimaniya', reps: 'макс' } },
+      { id: 'yagodichny_most', sets: 4, reps: 10 },
+      { id: 'zhim_vert_platformy', sets: 4, reps: 10 },
+      { id: 'kikbeki', sets: 4, reps: 12 }
     ]}
   ]},
-  thu: { label:'ЧТ', type:'home', title:'Домашняя', sections:[
-    { label:'Основной блок', exercises:[
-      {id:'myachik',sets:1,reps:'3 пол. x 12'},{id:'lodochka',sets:3,time:40},
-      {id:'obratnaya_planka',sets:3,time:40},{id:'vypady',sets:3,reps:12},
-      {id:'vysokaya_planka',sets:3,time:90},{id:'stoika_na_rukah',sets:3,time:60}
+  tue: { label: 'ВТ', type: 'home', title: 'Домашняя', sections: [
+    { label: 'Основной блок', exercises: [
+      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
+      { id: 'bloki_sverkhu', sets: 1, reps: '12–15' },
+      { id: 'bloki_podmyshki', sets: 1, reps: '12–15' },
+      { id: 'zavedenie_blinka', sets: 1, reps: '12–15' },
+      { id: 'myachik', sets: 1, reps: '3 пол. × 12' },
+      { id: 'vypady', sets: 3, reps: 12 },
+      { id: 'rastyazhka_divana', sets: 3, time: 30, note: 'на каждую ногу' },
+      { id: 'skladochka', sets: null, reps: null, note: 'по ощущениям' }
     ]}
   ]},
-  fri: { label:'ПТ', type:'gym', title:'Низ · Ягодицы', sections:[
-    { label:'Основной блок', exercises:[
-      {id:'most',sets:4,reps:10},{id:'zhim_vert_platformy',sets:4,reps:10},
-      {id:'sshgivaniya',sets:3,reps:12},{id:'rumynskaya',sets:3,reps:12},
-      {id:'glyut',sets:3,reps:12},{id:'razvedeniya',sets:3,reps:20}
+  wed: { label: 'СР', type: 'gym', title: 'Верх', sections: [
+    { label: 'До зала', homeSection: true, exercises: [
+      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
+      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 вида × 2 лопатки' }
     ]},
-    { label:'Конец тренировки', exercises:[{id:'vytyazhka_2',sets:2,reps:15}] }
+    { label: 'Начало тренировки', exercises: [
+      { id: 'ikry', sets: 2, reps: 15, superset: { id: 'press', reps: 12 } }
+    ]},
+    { label: 'Основной блок', exercises: [
+      { id: 'podtyagivaniya', sets: 4, reps: 10 },
+      { id: 'vert_tyaga_1ruka', sets: 5, reps: 12, note: 'на руку' },
+      { id: 'tyaga_kross_delta', sets: 4, reps: 12, note: 'на руку' },
+      { id: 'protyazhka', sets: 4, reps: 12 },
+      { id: 'otvedeniya_1ruka', sets: 4, reps: 12, note: 'на руку', superset: { id: 'podyomy_nog_vise', reps: 'макс' } },
+      { id: 'protyazhka', sets: 4, reps: 12 }
+    ]}
   ]},
-  sat: { label:'СБ', type:'home', title:'Мячик', sections:[
-    { label:'Упражнение', exercises:[{id:'myachik',sets:1,reps:'3 пол. x 12'}] }
+  thu: { label: 'ЧТ', type: 'home', title: 'Домашняя', sections: [
+    { label: 'Основной блок', exercises: [
+      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
+      { id: 'bloki_sverkhu', sets: 1, reps: '12–15' },
+      { id: 'bloki_podmyshki', sets: 1, reps: '12–15' },
+      { id: 'zavedenie_blinka', sets: 1, reps: '12–15' },
+      { id: 'prokhodka_fermera', sets: 1, reps: 10, note: 'шагов на сторону' },
+      { id: 'vypady', sets: 3, reps: 12 },
+      { id: 'vysokaya_planka', sets: 3, time: 90 },
+      { id: 'stoika_na_rukah', sets: 3, time: 60 }
+    ]}
+  ]},
+  fri: { label: 'ПТ', type: 'gym', title: 'Ягодицы', sections: [
+    { label: 'До зала', homeSection: true, exercises: [
+      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
+      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 вида × 2 лопатки' }
+    ]},
+    { label: 'Основной блок', exercises: [
+      { id: 'yagodichny_most', sets: 4, reps: 10 },
+      { id: 'bolgarskie_smit', sets: 4, reps: 10, note: 'на ногу' },
+      { id: 'rumynskaya', sets: 4, reps: 12 },
+      { id: 'kikbeki', sets: 4, reps: 12 },
+      { id: 'sgibaniya_trenazher', sets: 4, reps: 12, superset: { id: 'razvedeniya_naklone', reps: 12 } }
+    ]}
+  ]},
+  sat: { label: 'СБ', type: 'home', title: 'Дыхание', sections: [
+    { label: 'Упражнение', exercises: [
+      { id: 'dyhatelnoe', sets: 1, reps: '10–15' }
+    ]}
+  ]},
+  sun: { label: 'ВС', type: 'home', title: 'Восстановление', sections: [
+    { label: 'Упражнения', exercises: [
+      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
+      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 вида × 2 лопатки' }
+    ]}
   ]}
 };
 
-const DAYS_ORDER = ['mon','tue','wed','thu','fri','sat'];
+var DAYS_ORDER = ['mon','tue','wed','thu','fri','sat','sun'];
 
 // ============================================================
 // STATE
 // ============================================================
-let state = {
+var state = {
   currentDay: 'mon',
   weights: {}, weightHistory: {},
   measurements: {},
@@ -683,29 +743,36 @@ let state = {
   completedSets: {},
   lastResetDate: null,
   progressPhotos: [],
-  compareMode: 'all', compareView: 'front',
+  compareMode: 'gallery', compareView: 'front'
 };
 
 function todayStr() {
-  const d = new Date();
+  var d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
 function loadState() {
   try {
-    const s = JSON.parse(localStorage.getItem('workout_v3') || '{}');
-    state.weights      = s.weights      || {};
-    state.weightHistory= s.weightHistory|| {};
-    state.measurements = s.measurements || {};
-    state.lastResetDate= s.lastResetDate|| null;
-    state.completedSets= s.completedSets|| {};
+    var s = JSON.parse(localStorage.getItem('workout_v3') || '{}');
+    state.weights       = s.weights       || {};
+    state.weightHistory = s.weightHistory || {};
+    state.lastResetDate = s.lastResetDate || null;
+    state.completedSets = s.completedSets || {};
+    // Load measurements from both locations, merge
+    state.measurements  = s.measurements  || {};
+    try {
+      var m2 = JSON.parse(localStorage.getItem('gym_measurements') || '{}');
+      Object.keys(m2).forEach(function(k) { if (!state.measurements[k]) state.measurements[k] = m2[k]; });
+    } catch(e2) {}
   } catch(e) {}
 
   Object.keys(EXERCISES).forEach(function(id) {
-    if (!(id in state.weights)) state.weights[id] = EXERCISES[id].weight != null ? EXERCISES[id].weight : null;
+    if (!(id in state.weights)) {
+      state.weights[id] = EXERCISES[id].weight != null ? EXERCISES[id].weight : null;
+    }
   });
 
-  const today = todayStr();
+  var today = todayStr();
   if (state.lastResetDate !== today) {
     state.completedSets = {};
     state.lastResetDate = today;
@@ -715,24 +782,27 @@ function loadState() {
 
 function saveState() {
   try {
-    localStorage.setItem('workout_v3', JSON.stringify({
+    var data = {
       weights:       state.weights,
       weightHistory: state.weightHistory,
       measurements:  state.measurements,
       lastResetDate: state.lastResetDate,
-      completedSets: state.completedSets,
-    }));
+      completedSets: state.completedSets
+    };
+    localStorage.setItem('workout_v3', JSON.stringify(data));
+    // Also save measurements separately as backup
+    localStorage.setItem('gym_measurements', JSON.stringify(state.measurements));
   } catch(e) {}
 }
 
-// Save whenever app is hidden (minimized, tab switch)
+// Save on app hide / minimize
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'hidden') saveState();
 });
 window.addEventListener('pagehide', saveState);
 
 // ============================================================
-// WEIGHT — save previous weight before first change of day
+// WEIGHT
 // ============================================================
 var weightDebounceTimers = {};
 
@@ -743,7 +813,7 @@ function changeWeight(exId, delta, wEl) {
   var newVal = Math.round((cur + delta * step) * 100) / 100;
   if (newVal < 0) return;
 
-  // Record old weight as history entry before first change today
+  // Record OLD value as history entry before first change today
   var today = todayStr();
   if (!state.weightHistory[exId]) state.weightHistory[exId] = [];
   var hist = state.weightHistory[exId];
@@ -770,10 +840,10 @@ function toggleSet(uid, idx, total) {
   var arr = state.completedSets[uid];
   var pos = arr.indexOf(idx);
   if (pos === -1) arr.push(idx); else arr.splice(pos, 1);
-  saveState(); // save immediately
+  saveState();
   var row = document.getElementById('sets_' + uid);
   if (row) row.innerHTML = buildDots(uid, total);
-  if (arr.length >= total && total > 0) showToast('\u2713 \u0423\u043f\u0440\u0430\u0436\u043d\u0435\u043d\u0438\u0435 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u043e!');
+  if (arr.length >= total && total > 0) showToast('\u2713 \u0413\u043e\u0442\u043e\u0432\u043e!');
 }
 
 function buildDots(uid, total) {
@@ -784,8 +854,7 @@ function buildDots(uid, total) {
   }
   var h = '';
   for (var i = 0; i < total; i++) {
-    var cls = done.indexOf(i) !== -1 ? 'done' : '';
-    h += '<button class="set-dot ' + cls + '" onclick="event.stopPropagation();toggleSet(\'' + uid + '\',' + i + ',' + total + ')"></button>';
+    h += '<button class="set-dot ' + (done.indexOf(i) !== -1 ? 'done' : '') + '" onclick="event.stopPropagation();toggleSet(\'' + uid + '\',' + i + ',' + total + ')"></button>';
   }
   return h;
 }
@@ -796,8 +865,7 @@ function buildDots(uid, total) {
 var timers = {};
 function startTimer(uid, secs, btn) {
   if (timers[uid]) {
-    clearInterval(timers[uid]);
-    delete timers[uid];
+    clearInterval(timers[uid]); delete timers[uid];
     btn.classList.remove('running');
     btn.querySelector('.timer-display').textContent = fmtSec(secs);
     return;
@@ -835,52 +903,90 @@ function renderWorkout() {
 
   var html = '';
   w.sections.forEach(function(sec) {
-    html += '<div class="section-label">' + sec.label + '</div>';
+    var labelExtra = sec.homeSection ? ' <span style="font-size:9px;background:rgba(123,97,255,0.15);color:var(--home-color);border-radius:4px;padding:1px 6px;font-family:\'Unbounded\',sans-serif">ДОМА</span>' : '';
+    html += '<div class="section-label">' + sec.label + labelExtra + '</div>';
     sec.exercises.forEach(function(e, i) { html += renderCard(e, i+1, day); });
   });
   document.getElementById('workoutContent').innerHTML = html;
 }
 
+function wRow(exId, exObj, wUid) {
+  if (!exObj || !exObj.weightStep) {
+    return exObj && exObj.weightDisplay ? '<div class="no-weight">' + exObj.weightDisplay + '</div>' : '';
+  }
+  var wVal = state.weights[exId];
+  var wTxt = (wVal != null) ? (wVal + ' ' + (exObj.weightUnit || '\u043a\u0433')) : (exObj.weightDisplay || '\u2014');
+  return '<div class="ex-weight-controls">'
+    + '<button class="w-btn" onclick="event.stopPropagation();changeWeight(\'' + exId + '\',-1,document.getElementById(\'w_' + wUid + '\'))">&#8722;</button>'
+    + '<div class="w-value" id="w_' + wUid + '">' + wTxt + '</div>'
+    + '<button class="w-btn" onclick="event.stopPropagation();changeWeight(\'' + exId + '\',1,document.getElementById(\'w_' + wUid + '\'))">+</button>'
+    + '</div>'
+    + '<button class="w-history-btn" onclick="event.stopPropagation();showHistory(\'' + exId + '\')">\ud83d\udcc8 \u0438\u0441\u0442\u043e\u0440\u0438\u044f</button>';
+}
+
 function renderCard(entry, num, day) {
   var ex = EXERCISES[entry.id];
   if (!ex) return '';
-  var uid = day + '_' + entry.id + '_' + num;
-  var hasW = ex.weightStep != null;
+  var uid  = day + '_' + entry.id + '_' + num;
+  var ex2  = entry.superset ? EXERCISES[entry.superset.id] : null;
+  var uid2 = ex2 ? (day + '_' + entry.superset.id + '_' + num + 's') : '';
 
+  // Name + superset badge
+  var cardName = ex2 ? (ex.name + ' + ' + ex2.name) : ex.name;
+  var badge2 = ex2 ? ' <span style="font-size:9px;background:rgba(200,240,96,0.12);color:var(--gym-color);border-radius:4px;padding:1px 5px;font-family:\'Unbounded\',sans-serif;letter-spacing:0.03em">\u0421\u0423\u041f\u0415\u0420\u0421\u0415\u0422</span>' : '';
+
+  // Meta
   var meta = [];
-  if (entry.sets && entry.reps) meta.push(entry.sets + ' \u00d7 ' + entry.reps);
-  else if (entry.sets && entry.time) meta.push(entry.sets + ' \u00d7 ' + fmtSec(entry.time));
-  else if (entry.sets) meta.push(entry.sets + ' \u043f\u043e\u0434\u0445.');
+  if (entry.sets) {
+    if (ex2) {
+      meta.push(entry.sets + ' \u043f\u043e\u0434\u0445. \u00b7 ' + (entry.reps || fmtSec(entry.time)) + ' + ' + (entry.superset.reps || fmtSec(entry.superset.time)));
+    } else if (entry.reps) {
+      meta.push(entry.sets + ' \u00d7 ' + entry.reps);
+    } else if (entry.time) {
+      meta.push(entry.sets + ' \u00d7 ' + fmtSec(entry.time));
+    } else {
+      meta.push(entry.sets + ' \u043f\u043e\u0434\u0445.');
+    }
+  } else if (entry.reps) {
+    meta.push(entry.reps);
+  }
   if (entry.note) meta.push(entry.note);
 
-  var wVal = state.weights[entry.id];
-  var wDisplay = (wVal != null) ? (wVal + ' ' + (ex.weightUnit || '\u043a\u0433')) : (ex.weightDisplay || '\u2014');
+  // Dots
+  var total    = entry.sets || 0;
+  var dotsHTML = total > 0 ? '<div class="sets-row" id="sets_' + uid + '">' + buildDots(uid, total) + '</div>' : '';
 
+  // Weight
+  var hasW  = ex.weightStep != null;
+  var hasW2 = ex2 && ex2.weightStep != null;
   var weightHTML = '';
-  if (hasW) {
-    weightHTML = '<div class="ex-right">'
-      + '<div class="ex-weight-controls">'
-      + '<button class="w-btn" onclick="event.stopPropagation();changeWeight(\'' + entry.id + '\',-1,document.getElementById(\'w_' + uid + '\'))">−</button>'
-      + '<div class="w-value" id="w_' + uid + '">' + wDisplay + '</div>'
-      + '<button class="w-btn" onclick="event.stopPropagation();changeWeight(\'' + entry.id + '\',1,document.getElementById(\'w_' + uid + '\'))">+</button>'
-      + '</div>'
-      + '<button class="w-history-btn" onclick="event.stopPropagation();showHistory(\'' + entry.id + '\')">\ud83d\udcc8 \u0438\u0441\u0442\u043e\u0440\u0438\u044f</button>'
-      + '</div>';
-  } else if (ex.weightDisplay) {
-    weightHTML = '<div class="ex-right"><div class="no-weight">' + ex.weightDisplay + '</div></div>';
+  if (hasW || hasW2 || (ex.weightDisplay) || (ex2 && ex2.weightDisplay)) {
+    weightHTML = '<div class="ex-right">';
+    if (hasW || ex.weightDisplay) {
+      weightHTML += wRow(entry.id, ex, uid);
+    }
+    if (ex2) {
+      if (hasW || ex.weightDisplay) weightHTML += '<div style="height:5px"></div>';
+      weightHTML += wRow(entry.superset.id, ex2, uid2);
+    }
+    weightHTML += '</div>';
   }
 
-  var total = entry.sets || 0;
-  var dotsHTML = total > 0 ? '<div class="sets-row" id="sets_' + uid + '">' + buildDots(uid, total) + '</div>' : '';
+  // Timer
   var timerHTML = entry.time ? '<button class="timer-chip" onclick="startTimer(\'' + uid + '\',' + entry.time + ',this)">\u23f1 <span class="timer-display">' + fmtSec(entry.time) + '</span></button><br>' : '';
 
-  var mediaFiles = (state.media || {})[entry.id] || [];
+  // Tech
+  var techParts = [];
+  if (ex.tech) techParts.push(ex2 ? ('<strong>' + ex.name + '</strong>\n' + ex.tech) : ex.tech);
+  if (ex2 && ex2.tech) techParts.push('<strong>' + ex2.name + '</strong>\n' + ex2.tech);
+  var techHTML = techParts.length ? '<div class="tech-text">' + techParts.join('\n\n') + '</div>' : '';
+
+  // Media
+  var mfiles = (state.media || {})[entry.id] || [];
   var mediaGridHTML = '';
-  if (mediaFiles.length) {
-    mediaGridHTML = '<div class="media-grid">' + mediaFiles.map(function(f, i) {
-      if (f.type === 'video') {
-        return '<div class="media-item"><div class="media-video-thumb" onclick="openLightboxVideo(\'' + entry.id + '\',' + i + ')">\ud83c\udfa6</div><button class="media-remove" onclick="removeMedia(\'' + entry.id + '\',' + i + ')">\u2715</button></div>';
-      }
+  if (mfiles.length) {
+    mediaGridHTML = '<div class="media-grid">' + mfiles.map(function(f, i) {
+      if (f.type === 'video') return '<div class="media-item"><div class="media-video-thumb" onclick="openLightboxVideo(\'' + entry.id + '\',' + i + ')">\ud83c\udfa6</div><button class="media-remove" onclick="removeMedia(\'' + entry.id + '\',' + i + ')">\u2715</button></div>';
       return '<div class="media-item"><img class="media-thumb" src="' + f.src + '" onclick="openLightboxImg(\'' + entry.id + '\',' + i + ')"><button class="media-remove" onclick="removeMedia(\'' + entry.id + '\',' + i + ')">\u2715</button></div>';
     }).join('') + '</div>';
   }
@@ -889,7 +995,7 @@ function renderCard(entry, num, day) {
     + '<div class="ex-header" onclick="toggleDetail(\'' + uid + '\')">'
     + '<div class="ex-num">' + num + '</div>'
     + '<div class="ex-info">'
-    + '<div class="ex-name">' + ex.name + '</div>'
+    + '<div class="ex-name">' + cardName + badge2 + '</div>'
     + '<div class="ex-meta-line">' + meta.join(' \u00b7 ') + '</div>'
     + dotsHTML
     + '</div>'
@@ -898,9 +1004,7 @@ function renderCard(entry, num, day) {
     + '</div>'
     + '<div class="ex-detail" id="detail_' + uid + '">'
     + '<div class="ex-detail-inner">'
-    + timerHTML
-    + (ex.tech ? '<div class="tech-text">' + ex.tech + '</div>' : '')
-    + mediaGridHTML
+    + timerHTML + techHTML + mediaGridHTML
     + '<div class="media-placeholder" onclick="document.getElementById(\'mi_' + uid + '\').click()">'
     + '<span>\ud83d\udcce</span><span class="media-placeholder-text">\u041f\u0440\u0438\u043a\u0440\u0435\u043f\u0438\u0442\u044c \u0444\u043e\u0442\u043e / \u0432\u0438\u0434\u0435\u043e</span>'
     + '</div>'
@@ -930,7 +1034,7 @@ function handleMediaFiles(exId, input) {
   });
 }
 function removeMedia(exId, idx) {
-  if (state.media && state.media[exId]) { state.media[exId].splice(idx, 1); renderWorkout(); }
+  if (state.media && state.media[exId]) { state.media[exId].splice(idx,1); renderWorkout(); }
 }
 function openLightboxImg(exId, idx) {
   document.getElementById('lightboxImg').src = state.media[exId][idx].src;
@@ -967,14 +1071,13 @@ function showHistory(exId) {
       var prev = hist[i+1];
       var diffHTML = '';
       if (prev) {
-        var d = Math.round((entry.weight - prev.weight) * 100) / 100;
+        var d = Math.round((entry.weight - prev.weight)*100)/100;
         if (d > 0) diffHTML = '<span class="history-diff up">+' + d + '</span>';
         else if (d < 0) diffHTML = '<span class="history-diff down">' + d + '</span>';
         else diffHTML = '<span class="history-diff same">\u2014</span>';
       }
-      var ds = formatDateRU(entry.date);
       html += '<div class="history-item">'
-        + '<div class="history-date">' + ds + '</div>'
+        + '<div class="history-date">' + formatDateRU(entry.date) + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px">' + diffHTML
         + '<div class="history-weight">' + entry.weight + ' ' + (ex.weightUnit || '\u043a\u0433') + '</div></div>'
         + '</div>';
@@ -994,7 +1097,6 @@ function renderDayTabs() {
     return '<button class="day-tab ' + active + '" onclick="selectDay(\'' + day + '\')">' + w.label + '</button>';
   }).join('');
 }
-
 function selectDay(day) {
   state.currentDay = day;
   renderDayTabs();
@@ -1021,38 +1123,37 @@ function openDB() {
     if (db) { resolve(db); return; }
     var req = indexedDB.open('gym_photos_v1', 1);
     req.onupgradeneeded = function(e) {
-      var d = e.target.result;
-      if (!d.objectStoreNames.contains('photos')) d.createObjectStore('photos', { keyPath: 'id' });
+      if (!e.target.result.objectStoreNames.contains('photos'))
+        e.target.result.createObjectStore('photos', { keyPath: 'id' });
     };
     req.onsuccess = function(e) { db = e.target.result; resolve(db); };
-    req.onerror = function() { reject(req.error); };
+    req.onerror   = function() { reject(req.error); };
   });
 }
-function dbSavePhoto(photo) {
+function dbSave(photo) {
   return openDB().then(function(d) {
     return new Promise(function(resolve, reject) {
-      var tx = d.transaction('photos', 'readwrite');
+      var tx = d.transaction('photos','readwrite');
       tx.objectStore('photos').put(photo);
       tx.oncomplete = resolve; tx.onerror = function() { reject(tx.error); };
     });
   });
 }
-function dbDeletePhoto(id) {
+function dbDelete(id) {
   return openDB().then(function(d) {
     return new Promise(function(resolve, reject) {
-      var tx = d.transaction('photos', 'readwrite');
+      var tx = d.transaction('photos','readwrite');
       tx.objectStore('photos').delete(id);
       tx.oncomplete = resolve; tx.onerror = function() { reject(tx.error); };
     });
   });
 }
-function dbLoadAllPhotos() {
+function dbLoadAll() {
   return openDB().then(function(d) {
     return new Promise(function(resolve, reject) {
-      var tx = d.transaction('photos', 'readonly');
-      var req = tx.objectStore('photos').getAll();
+      var req = d.transaction('photos','readonly').objectStore('photos').getAll();
       req.onsuccess = function() { resolve(req.result || []); };
-      req.onerror = function() { reject(req.error); };
+      req.onerror   = function() { reject(req.error); };
     });
   });
 }
@@ -1060,23 +1161,22 @@ function dbLoadAllPhotos() {
 // ============================================================
 // DATE HELPERS
 // ============================================================
-function parseDateFromFilename(filename) {
-  var m = filename.match(/(\d{4})(\d{2})(\d{2})_(\d{6})/);
-  if (!m) m = filename.match(/(\d{4})(\d{2})(\d{2})/);
+function parseDateFromFilename(name) {
+  var m = name.match(/(\d{4})(\d{2})(\d{2})_(\d{6})/) || name.match(/(\d{4})(\d{2})(\d{2})/);
   if (!m) return null;
   var y = parseInt(m[1]), mo = parseInt(m[2]), d = parseInt(m[3]);
   if (y < 2000 || y > 2100 || mo < 1 || mo > 12 || d < 1 || d > 31) return null;
   return m[1] + '-' + m[2] + '-' + m[3];
 }
-function formatDateRU(dateStr) {
-  var parts = dateStr.split('-');
-  var months = ['\u044f\u043d\u0432\u0430\u0440\u044f','\u0444\u0435\u0432\u0440\u0430\u043b\u044f','\u043c\u0430\u0440\u0442\u0430','\u0430\u043f\u0440\u0435\u043b\u044f','\u043c\u0430\u044f','\u0438\u044e\u043d\u044f','\u0438\u044e\u043b\u044f','\u0430\u0432\u0433\u0443\u0441\u0442\u0430','\u0441\u0435\u043d\u0442\u044f\u0431\u0440\u044f','\u043e\u043a\u0442\u044f\u0431\u0440\u044f','\u043d\u043e\u044f\u0431\u0440\u044f','\u0434\u0435\u043a\u0430\u0431\u0440\u044f'];
-  return parseInt(parts[2]) + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
+function formatDateRU(s) {
+  var p = s.split('-');
+  var M = ['\u044f\u043d\u0432\u0430\u0440\u044f','\u0444\u0435\u0432\u0440\u0430\u043b\u044f','\u043c\u0430\u0440\u0442\u0430','\u0430\u043f\u0440\u0435\u043b\u044f','\u043c\u0430\u044f','\u0438\u044e\u043d\u044f','\u0438\u044e\u043b\u044f','\u0430\u0432\u0433\u0443\u0441\u0442\u0430','\u0441\u0435\u043d\u0442\u044f\u0431\u0440\u044f','\u043e\u043a\u0442\u044f\u0431\u0440\u044f','\u043d\u043e\u044f\u0431\u0440\u044f','\u0434\u0435\u043a\u0430\u0431\u0440\u044f'];
+  return parseInt(p[2]) + ' ' + M[parseInt(p[1])-1] + ' ' + p[0];
 }
-function formatDateShortRU(dateStr) {
-  var parts = dateStr.split('-');
-  var months = ['\u044f\u043d\u0432','\u0444\u0435\u0432','\u043c\u0430\u0440','\u0430\u043f\u0440','\u043c\u0430\u0439','\u0438\u044e\u043d','\u0438\u044e\u043b','\u0430\u0432\u0433','\u0441\u0435\u043d','\u043e\u043a\u0442','\u043d\u043e\u044f','\u0434\u0435\u043a'];
-  return parseInt(parts[2]) + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
+function formatDateShortRU(s) {
+  var p = s.split('-');
+  var M = ['\u044f\u043d\u0432','\u0444\u0435\u0432','\u043c\u0430\u0440','\u0430\u043f\u0440','\u043c\u0430\u0439','\u0438\u044e\u043d','\u0438\u044e\u043b','\u0430\u0432\u0433','\u0441\u0435\u043d','\u043e\u043a\u0442','\u043d\u043e\u044f','\u0434\u0435\u043a'];
+  return parseInt(p[2]) + ' ' + M[parseInt(p[1])-1] + ' ' + p[0];
 }
 
 // ============================================================
@@ -1089,7 +1189,6 @@ function renderProgress() {
 }
 
 var galleryEditMode = false;
-
 function toggleGalleryEdit() {
   galleryEditMode = !galleryEditMode;
   var btn  = document.getElementById('editGalleryBtn');
@@ -1098,10 +1197,10 @@ function toggleGalleryEdit() {
   if (grid) grid.classList.toggle('gallery-edit-mode', galleryEditMode);
 }
 
-function renderMeasurementsBlock(date) {
+function renderMeasBlock(date) {
   var text = state.measurements[date] || '';
-  var safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');
-  var inner = safeText || '<span class="measurements-empty">\u041d\u0430\u0436\u043c\u0438 \u270e \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0437\u0430\u043c\u0435\u0440\u044b</span>';
+  var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+  var inner = safe || '<span class="measurements-empty">\u041d\u0430\u0436\u043c\u0438 \u270e \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0437\u0430\u043c\u0435\u0440\u044b</span>';
   return '<div class="measurements-block">'
     + '<div class="measurements-header">'
     + '<div class="measurements-title">\u0417\u0410\u041c\u0415\u0420\u042b</div>'
@@ -1110,84 +1209,67 @@ function renderMeasurementsBlock(date) {
     + '<div class="measurements-text" id="mtext_' + date + '">' + inner + '</div>'
     + '</div>';
 }
-
 function editMeasurements(date) {
-  var current = state.measurements[date] || '';
+  var cur   = state.measurements[date] || '';
   var block = document.getElementById('mtext_' + date);
   if (!block) return;
-  block.innerHTML = '<textarea class="measurements-textarea" id="mtextarea_' + date + '" placeholder="\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0432\u0435\u0441 \u0442\u0435\u043b\u0430 62\u043a\u0433, \u0442\u0430\u043b\u0438\u044f 70\u0441\u043c, \u0431\u0451\u0434\u0440\u0430 96\u0441\u043c...">' + current + '</textarea>'
+  block.innerHTML = '<textarea class="measurements-textarea" id="mta_' + date + '" placeholder="\u041d\u0430\u043f\u0440\u0438\u043c\u0435\u0440: \u0432\u0435\u0441 62\u043a\u0433, \u0442\u0430\u043b\u0438\u044f 70\u0441\u043c, \u0431\u0451\u0434\u0440\u0430 96\u0441\u043c...">' + cur + '</textarea>'
     + '<button onclick="saveMeasurements(\'' + date + '\')" style="margin-top:8px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;padding:8px 16px;font-family:\'Golos Text\',sans-serif;font-size:12px;font-weight:600;cursor:pointer">\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c</button>';
-  var ta = document.getElementById('mtextarea_' + date);
+  var ta = document.getElementById('mta_' + date);
   if (ta) ta.focus();
 }
-
 function saveMeasurements(date) {
-  var ta = document.getElementById('mtextarea_' + date);
+  var ta  = document.getElementById('mta_' + date);
   if (!ta) return;
   var val = ta.value.trim();
   if (val) state.measurements[date] = val; else delete state.measurements[date];
   saveState();
   var block = document.getElementById('mtext_' + date);
   if (block) {
-    var safeText = val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
-    block.innerHTML = safeText || '<span class="measurements-empty">\u041d\u0430\u0436\u043c\u0438 \u270e \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0437\u0430\u043c\u0435\u0440\u044b</span>';
+    var safe = val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+    block.innerHTML = safe || '<span class="measurements-empty">\u041d\u0430\u0436\u043c\u0438 \u270e \u0447\u0442\u043e\u0431\u044b \u0434\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0437\u0430\u043c\u0435\u0440\u044b</span>';
   }
 }
-
 function addMeasurementsForDate() {
   state.compareMode = 'gallery';
   document.querySelectorAll('.compare-tab').forEach(function(b) { b.classList.toggle('active', b.dataset.mode === 'gallery'); });
   renderProgress();
-  var today = todayStr();
-  setTimeout(function() { editMeasurements(today); }, 150);
+  setTimeout(function() { editMeasurements(todayStr()); }, 150);
 }
 
 function renderGallery(container) {
   var photos = state.progressPhotos;
-  var photoDates = {};
-  photos.forEach(function(p) { photoDates[p.date] = true; });
-  var measDates = Object.keys(state.measurements);
-  var allDatesSet = {};
-  Object.keys(photoDates).forEach(function(d) { allDatesSet[d] = true; });
-  measDates.forEach(function(d) { allDatesSet[d] = true; });
-  var allDates = Object.keys(allDatesSet).sort().reverse();
+  var allDates = {};
+  photos.forEach(function(p) { allDates[p.date] = true; });
+  Object.keys(state.measurements).forEach(function(d) { allDates[d] = true; });
+  var dates = Object.keys(allDates).sort().reverse();
 
-  if (!allDates.length) {
-    container.innerHTML = '<div class="progress-empty"><div class="big-icon">\ud83d\udcf8</div><p>\u0414\u043e\u0431\u0430\u0432\u044c \u043f\u0435\u0440\u0432\u043e\u0435 \u0444\u043e\u0442\u043e</p></div>';
-    galleryEditMode = false;
-    return;
+  if (!dates.length) {
+    container.innerHTML = '<div class="progress-empty"><div class="big-icon">\ud83d\udcf8</div><p>\u0414\u043e\u0431\u0430\u0432\u044c \u043f\u0435\u0440\u0432\u043e\u0435 \u0444\u043e\u0442\u043e \u0438\u043b\u0438 \u0437\u0430\u043c\u0435\u0440\u044b</p></div>';
+    galleryEditMode = false; return;
   }
-
   var byDate = {};
-  photos.forEach(function(p) {
-    if (!byDate[p.date]) byDate[p.date] = [];
-    byDate[p.date].push(p);
-  });
-
+  photos.forEach(function(p) { (byDate[p.date] = byDate[p.date] || []).push(p); });
   var vL = { front:'\u0410\u043d\u0444\u0430\u0441', side:'\u041f\u0440\u043e\u0444\u0438\u043b\u044c', back:'\u0421\u043f\u0438\u043d\u0430' };
-  var editBtn = galleryEditMode ? '\u2713 \u0413\u043e\u0442\u043e\u0432\u043e' : '\u270e \u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0444\u043e\u0442\u043e';
-  var html = '<button class="edit-gallery-btn ' + (galleryEditMode?'active':'') + '" id="editGalleryBtn" onclick="toggleGalleryEdit()">' + editBtn + '</button>';
+
+  var eBtn = galleryEditMode ? '\u2713 \u0413\u043e\u0442\u043e\u0432\u043e' : '\u270e \u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0444\u043e\u0442\u043e';
+  var html = '<button class="edit-gallery-btn ' + (galleryEditMode?'active':'') + '" id="editGalleryBtn" onclick="toggleGalleryEdit()">' + eBtn + '</button>';
   html += '<div id="galleryGrid" class="' + (galleryEditMode?'gallery-edit-mode':'') + '">';
 
-  allDates.forEach(function(date) {
+  dates.forEach(function(date) {
     html += '<div class="photo-date-group"><div class="photo-date-label">' + formatDateRU(date) + '</div>';
-    var dayPhotos = byDate[date] || [];
-    if (dayPhotos.length) {
+    var dp = byDate[date] || [];
+    if (dp.length) {
       html += '<div class="photo-row">';
       ['front','side','back'].forEach(function(v) {
-        var p = dayPhotos.filter(function(x) { return x.view === v; })[0];
-        if (p) {
-          html += '<div class="photo-thumb-wrap">'
-            + '<img class="photo-thumb" src="' + p.src + '" onclick="openProgressLightbox(\'' + p.id + '\')">'
-            + '<button class="photo-delete-btn" onclick="deletePhoto(\'' + p.id + '\')">\u2715</button>'
-            + '<div class="photo-view-label">' + vL[v] + '</div>'
-            + '</div>';
-        }
+        var p = dp.filter(function(x) { return x.view === v; })[0];
+        if (p) html += '<div class="photo-thumb-wrap"><img class="photo-thumb" src="' + p.src + '" onclick="openProgressLightbox(\'' + p.id + '\')">'
+          + '<button class="photo-delete-btn" onclick="deletePhoto(\'' + p.id + '\')">\u2715</button>'
+          + '<div class="photo-view-label">' + vL[v] + '</div></div>';
       });
       html += '</div>';
     }
-    html += renderMeasurementsBlock(date);
-    html += '</div>';
+    html += renderMeasBlock(date) + '</div>';
   });
   html += '</div>';
   container.innerHTML = html;
@@ -1197,43 +1279,35 @@ function renderCompare(container) {
   var vL = { front:'\u0410\u043d\u0444\u0430\u0441', side:'\u041f\u0440\u043e\u0444\u0438\u043b\u044c', back:'\u0421\u043f\u0438\u043d\u0430' };
   var view = state.compareView;
   var filtered = state.progressPhotos.filter(function(p) { return p.view === view; }).sort(function(a,b) { return a.date < b.date ? -1 : 1; });
-
   if (!filtered.length) {
-    container.innerHTML = '<div class="progress-empty"><div class="big-icon">\ud83d\udcf7</div><p>\u041d\u0435\u0442 \u0444\u043e\u0442\u043e \u00ab' + vL[view] + '\u00bb<br>\u0414\u043e\u0431\u0430\u0432\u044c \u043d\u0438\u0436\u0435</p></div>';
-    return;
+    container.innerHTML = '<div class="progress-empty"><div class="big-icon">\ud83d\udcf7</div><p>\u041d\u0435\u0442 \u0444\u043e\u0442\u043e \u00ab' + vL[view] + '\u00bb<br>\u0414\u043e\u0431\u0430\u0432\u044c \u043d\u0438\u0436\u0435</p></div>'; return;
   }
-
   if (state.compareMode === 'custom') {
-    var dates = [];
-    var seen = {};
-    state.progressPhotos.forEach(function(p) { if (!seen[p.date]) { seen[p.date] = true; dates.push(p.date); } });
+    var seen = {}, dates = [];
+    state.progressPhotos.forEach(function(p) { if (!seen[p.date]) { seen[p.date]=true; dates.push(p.date); } });
     dates.sort();
     var opts = dates.map(function(d) { return '<option value="' + d + '">' + formatDateRU(d) + '</option>'; }).join('');
     var selL = (container.querySelector('#customLeft') || {}).value || '';
     var selR = (container.querySelector('#customRight') || {}).value || '';
-    var left  = selL ? filtered.filter(function(p) { return p.date === selL; })[0] : null;
-    var right = selR ? filtered.filter(function(p) { return p.date === selR; })[0] : null;
-    var lL = selL ? formatDateShortRU(selL) : '\u0414\u0430\u0442\u0430 1';
-    var rL = selR ? formatDateShortRU(selR) : '\u0414\u0430\u0442\u0430 2';
+    var left  = selL ? filtered.filter(function(p) { return p.date===selL; })[0] : null;
+    var right = selR ? filtered.filter(function(p) { return p.date===selR; })[0] : null;
     container.innerHTML = '<div class="date-select-row">'
       + '<select class="date-select" id="customLeft" onchange="renderProgress()"><option value="">\u0414\u0430\u0442\u0430 1</option>' + opts + '</select>'
       + '<select class="date-select" id="customRight" onchange="renderProgress()"><option value="">\u0414\u0430\u0442\u0430 2</option>' + opts + '</select>'
-      + '</div>' + pairHTML(left, right, lL, rL);
+      + '</div>' + pairHTML(left, right, selL ? formatDateShortRU(selL) : '\u0414\u0430\u0442\u0430 1', selR ? formatDateShortRU(selR) : '\u0414\u0430\u0442\u0430 2');
     if (selL) container.querySelector('#customLeft').value = selL;
     if (selR) container.querySelector('#customRight').value = selR;
     return;
   }
-
   var left, right, lL, rL;
   if (state.compareMode === 'all') {
-    left = filtered[0]; right = filtered[filtered.length-1];
-    lL = '\u041d\u0430\u0447\u0430\u043b\u043e'; rL = '\u0421\u0435\u0439\u0447\u0430\u0441';
+    left=filtered[0]; right=filtered[filtered.length-1]; lL='\u041d\u0430\u0447\u0430\u043b\u043e'; rL='\u0421\u0435\u0439\u0447\u0430\u0441';
   } else {
     right = filtered[filtered.length-1];
     var wa = new Date(right.date + 'T12:00:00'); wa.setDate(wa.getDate()-7);
     var waS = wa.toISOString().slice(0,10);
-    left = filtered.reduce(function(b,p) { return p.date <= waS ? p : b; }, null) || (filtered.length > 1 ? filtered[filtered.length-2] : filtered[0]);
-    lL = '~\u041d\u0435\u0434\u0435\u043b\u044e \u043d\u0430\u0437\u0430\u0434'; rL = '\u0421\u0435\u0439\u0447\u0430\u0441';
+    left = filtered.reduce(function(b,p) { return p.date<=waS?p:b; }, null) || (filtered.length>1?filtered[filtered.length-2]:filtered[0]);
+    lL='~\u041d\u0435\u0434\u0435\u043b\u044e \u043d\u0430\u0437\u0430\u0434'; rL='\u0421\u0435\u0439\u0447\u0430\u0441';
   }
   container.innerHTML = pairHTML(left, right, lL, rL);
 }
@@ -1241,34 +1315,28 @@ function renderCompare(container) {
 function pairHTML(left, right, lL, rL) {
   function slot(p, label) {
     if (!p) return '<div class="compare-photo-wrap"><div class="compare-empty-slot">\u041d\u0435\u0442 \u0444\u043e\u0442\u043e</div><div class="compare-label">' + label + '</div></div>';
-    return '<div class="compare-photo-wrap">'
-      + '<img class="compare-photo" src="' + p.src + '" onclick="openCompareFs()">'
-      + '<div class="compare-label">' + label + '<br><span style="color:var(--text3);font-size:10px">' + formatDateShortRU(p.date) + '</span></div>'
-      + '</div>';
+    return '<div class="compare-photo-wrap"><img class="compare-photo" src="' + p.src + '" onclick="openCompareFs()">'
+      + '<div class="compare-label">' + label + '<br><span style="color:var(--text3);font-size:10px">' + formatDateShortRU(p.date) + '</span></div></div>';
   }
-  window._compareLeft  = left;  window._compareLeftLabel  = lL;
-  window._compareRight = right; window._compareRightLabel = rL;
-  var btnHTML = (left && right) ? '<button class="open-compare-btn" onclick="openCompareFs()">\ud83d\udd0d \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0441\u0440\u0430\u0432\u043d\u0435\u043d\u0438\u0435 \u043d\u0430 \u0432\u0435\u0441\u044c \u044d\u043a\u0440\u0430\u043d</button>' : '';
-  return '<div class="compare-pair">' + slot(left,lL) + slot(right,rL) + '</div>' + btnHTML;
+  window._cL=left; window._cR=right; window._cLL=lL; window._cRL=rL;
+  var btn = (left && right) ? '<button class="open-compare-btn" onclick="openCompareFs()">\ud83d\udd0d \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0441\u0440\u0430\u0432\u043d\u0435\u043d\u0438\u0435 \u043d\u0430 \u0432\u0435\u0441\u044c \u044d\u043a\u0440\u0430\u043d</button>' : '';
+  return '<div class="compare-pair">' + slot(left,lL) + slot(right,rL) + '</div>' + btn;
 }
 
 function openProgressLightbox(id) {
-  var p = state.progressPhotos.filter(function(x) { return x.id === id; })[0];
+  var p = state.progressPhotos.filter(function(x) { return x.id===id; })[0];
   if (!p) return;
   document.getElementById('lightboxImg').src = p.src;
   document.getElementById('lightboxImg').style.display = 'block';
   document.getElementById('lightboxVideo').style.display = 'none';
   document.getElementById('lightbox').classList.add('open');
-  history.pushState({ lb: true }, '');
+  history.pushState({ lb:true }, '');
 }
-
 function deletePhoto(id) {
   if (!confirm('\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u044d\u0442\u043e \u0444\u043e\u0442\u043e?')) return;
-  dbDeletePhoto(id).then(function() {
-    state.progressPhotos = state.progressPhotos.filter(function(p) { return p.id !== id; });
-    savePhotoIndex();
-    renderProgress();
-    showToast('\u0424\u043e\u0442\u043e \u0443\u0434\u0430\u043b\u0435\u043d\u043e');
+  dbDelete(id).then(function() {
+    state.progressPhotos = state.progressPhotos.filter(function(p) { return p.id!==id; });
+    savePhotoIndex(); renderProgress(); showToast('\u0424\u043e\u0442\u043e \u0443\u0434\u0430\u043b\u0435\u043d\u043e');
   });
 }
 
@@ -1276,89 +1344,60 @@ function deletePhoto(id) {
 // PHOTO UPLOAD
 // ============================================================
 var pendingFiles = [];
-
 function savePhotoIndex() {
-  try {
-    var index = state.progressPhotos.map(function(p) { return { id: p.id, date: p.date, view: p.view }; });
-    localStorage.setItem('gym_photo_index', JSON.stringify(index));
-  } catch(e) {}
+  try { localStorage.setItem('gym_photo_index', JSON.stringify(state.progressPhotos.map(function(p) { return {id:p.id,date:p.date,view:p.view}; }))); } catch(e) {}
 }
-
 function loadPhotos() {
-  return dbLoadAllPhotos().then(function(allFromDB) {
+  return dbLoadAll().then(function(all) {
     try {
-      var index = JSON.parse(localStorage.getItem('gym_photo_index') || '[]');
+      var idx = JSON.parse(localStorage.getItem('gym_photo_index')||'[]');
       var byId = {};
-      allFromDB.forEach(function(p) { byId[p.id] = p; });
-      state.progressPhotos = index.map(function(meta) { return byId[meta.id]; }).filter(Boolean);
-    } catch(e) { state.progressPhotos = []; }
-  }).catch(function() { state.progressPhotos = []; });
+      all.forEach(function(p) { byId[p.id]=p; });
+      state.progressPhotos = idx.map(function(m) { return byId[m.id]; }).filter(Boolean);
+    } catch(e) { state.progressPhotos=[]; }
+  }).catch(function() { state.progressPhotos=[]; });
 }
 
 document.getElementById('uploadZone').addEventListener('click', function() {
   var inp = document.getElementById('progressFileInput');
-  inp.value = '';
-  inp.click();
+  inp.value = ''; inp.click();
 });
-
 document.getElementById('progressFileInput').addEventListener('change', function() {
   pendingFiles = Array.from(this.files);
   if (!pendingFiles.length) return;
-  var firstName   = pendingFiles[0].name;
-  var parsedDate  = parseDateFromFilename(firstName);
-  var today       = todayStr();
-  document.getElementById('photoDate').value = parsedDate || today;
+  var parsed = parseDateFromFilename(pendingFiles[0].name);
+  var today  = todayStr();
+  document.getElementById('photoDate').value = parsed || today;
   var hint = document.getElementById('photoDateHint');
   if (hint) {
-    if (parsedDate) {
-      hint.style.color = 'var(--accent)';
-      hint.textContent = '\ud83d\udcc5 \u0414\u0430\u0442\u0430 \u0438\u0437 \u0438\u043c\u0435\u043d\u0438 \u0444\u0430\u0439\u043b\u0430: ' + formatDateRU(parsedDate);
-    } else {
-      hint.style.color = 'var(--text3)';
-      hint.textContent = '\u0418\u043c\u044f \u0444\u0430\u0439\u043b\u0430: ' + firstName + ' \u2014 \u0434\u0430\u0442\u0430 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430, \u0432\u044b\u0431\u0435\u0440\u0438 \u0432\u0440\u0443\u0447\u043d\u0443\u044e';
-      setTimeout(function() { document.getElementById('photoDate').focus(); }, 300);
-    }
+    if (parsed) { hint.style.color='var(--accent)'; hint.textContent='\ud83d\udcc5 \u0414\u0430\u0442\u0430 \u0438\u0437 \u0438\u043c\u0435\u043d\u0438 \u0444\u0430\u0439\u043b\u0430: '+formatDateRU(parsed); }
+    else { hint.style.color='var(--text3)'; hint.textContent='\u0418\u043c\u044f: '+pendingFiles[0].name+' \u2014 \u0434\u0430\u0442\u0430 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430, \u0432\u044b\u0431\u0435\u0440\u0438 \u0432\u0440\u0443\u0447\u043d\u0443\u044e'; setTimeout(function(){document.getElementById('photoDate').focus();},300); }
   }
-  document.querySelectorAll('#viewPickRow .view-chip').forEach(function(b,i) { b.classList.toggle('active', i===0); });
+  document.querySelectorAll('#viewPickRow .view-chip').forEach(function(b,i){b.classList.toggle('active',i===0);});
   document.getElementById('photoMetaModal').classList.add('open');
 });
-
 function pickView(btn) {
-  btn.closest('div').querySelectorAll('.view-chip').forEach(function(b) { b.classList.remove('active'); });
+  btn.closest('div').querySelectorAll('.view-chip').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
 }
-
 function savePhotoMeta() {
-  var date  = document.getElementById('photoDate').value;
+  var date    = document.getElementById('photoDate').value;
   var viewBtn = document.querySelector('#viewPickRow .view-chip.active');
-  var view  = viewBtn ? viewBtn.getAttribute('data-pick') : 'front';
-  var views = ['front','side','back'];
-  var filesToProcess = pendingFiles.slice();
-  pendingFiles = [];
-  var total = filesToProcess.length;
-  var done  = 0;
+  var view    = viewBtn ? viewBtn.getAttribute('data-pick') : 'front';
+  var views   = ['front','side','back'];
+  var files   = pendingFiles.slice(); pendingFiles = [];
+  var total   = files.length, done = 0;
   document.getElementById('photoMetaModal').classList.remove('open');
-
-  filesToProcess.forEach(function(file, i) {
+  files.forEach(function(file, i) {
     var reader = new FileReader();
     reader.onload = function(e) {
-      var photo = {
-        id:   Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2),
-        src:  e.target.result,
-        date: date,
-        view: total > 1 ? views[i % 3] : view
-      };
-      dbSavePhoto(photo).then(function() {
+      var photo = { id: Date.now()+'_'+i+'_'+Math.random().toString(36).slice(2), src: e.target.result, date: date, view: total>1?views[i%3]:view };
+      dbSave(photo).then(function() {
         state.progressPhotos.push(photo);
-        done++;
-        if (done === total) {
-          savePhotoIndex();
-          renderProgress();
-          showToast('\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u043e ' + done + ' \u0444\u043e\u0442\u043e');
-        }
+        if (++done===total) { savePhotoIndex(); renderProgress(); showToast('\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u043e '+done+' \u0444\u043e\u0442\u043e'); }
       });
     };
-    reader.onerror = function() { done++; };
+    reader.onerror = function(){done++;};
     reader.readAsDataURL(file);
   });
 }
@@ -1366,174 +1405,91 @@ function savePhotoMeta() {
 // ============================================================
 // FULLSCREEN COMPARE
 // ============================================================
-var cfsPhotos = [], cfsLabels = [], cfsIndex = 0, cfsZoomScale = 1;
-
+var cfsPhotos=[], cfsLabels=[], cfsIndex=0, cfsZoomScale=1;
 function openCompareFs() {
-  var left  = window._compareLeft;
-  var right = window._compareRight;
+  var left=window._cL, right=window._cR;
   if (!left && !right) return;
-  cfsPhotos = [left, right].filter(Boolean);
-  cfsLabels = [window._compareLeftLabel, window._compareRightLabel].filter(function(l, i) { return !!cfsPhotos[i]; });
-  cfsIndex = 0; cfsZoomScale = 1;
-
-  var track = document.getElementById('compareFsTrack');
-  track.innerHTML = cfsPhotos.map(function(p, i) {
-    return '<div class="compare-fs-slide" id="cfsSlide' + i + '"><img src="' + p.src + '" id="cfsImg' + i + '" draggable="false"></div>';
+  cfsPhotos=[left,right].filter(Boolean);
+  cfsLabels=[window._cLL,window._cRL].filter(function(l,i){return !!cfsPhotos[i];});
+  cfsIndex=0; cfsZoomScale=1;
+  var track=document.getElementById('compareFsTrack');
+  track.innerHTML=cfsPhotos.map(function(p,i){
+    return '<div class="compare-fs-slide" id="cfsSlide'+i+'"><img src="'+p.src+'" id="cfsImg'+i+'" draggable="false"></div>';
   }).join('');
-
   updateCfsUI();
   document.getElementById('compareFs').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  history.pushState({ cfs: true }, '');
-  setTimeout(function() {
-    var hint = document.getElementById('compareFsHint');
-    if (hint) hint.style.opacity = '0';
-  }, 2000);
+  document.body.style.overflow='hidden';
+  history.pushState({cfs:true},'');
+  setTimeout(function(){ var h=document.getElementById('compareFsHint'); if(h) h.style.opacity='0'; },2000);
 }
-
 function closeCompareFs() {
   document.getElementById('compareFs').classList.remove('open');
-  document.body.style.overflow = '';
-  cfsZoomScale = 1;
-  cfsPhotos.forEach(function(_, i) {
-    var img = document.getElementById('cfsImg' + i);
-    if (img) { img.style.transform = 'scale(1)'; img.style.transformOrigin = 'center center'; }
-  });
+  document.body.style.overflow=''; cfsZoomScale=1;
+  cfsPhotos.forEach(function(_,i){ var img=document.getElementById('cfsImg'+i); if(img){img.style.transform='scale(1)';img.style.transformOrigin='center center';} });
 }
-
 function updateCfsUI() {
-  var track = document.getElementById('compareFsTrack');
-  track.style.transform = 'translateX(-' + (cfsIndex * 100) + 'vw)';
-  var p = cfsPhotos[cfsIndex];
-  document.getElementById('compareFsLabel').textContent = cfsLabels[cfsIndex] || '';
-  document.getElementById('compareFsDate').textContent  = p ? formatDateRU(p.date) : '';
-  document.getElementById('compareFsDots').innerHTML = cfsPhotos.map(function(_, i) {
-    return '<div class="compare-fs-dot ' + (i === cfsIndex ? 'active' : '') + '"></div>';
+  document.getElementById('compareFsTrack').style.transform='translateX(-'+(cfsIndex*100)+'vw)';
+  var p=cfsPhotos[cfsIndex];
+  document.getElementById('compareFsLabel').textContent=cfsLabels[cfsIndex]||'';
+  document.getElementById('compareFsDate').textContent=p?formatDateRU(p.date):'';
+  document.getElementById('compareFsDots').innerHTML=cfsPhotos.map(function(_,i){
+    return '<div class="compare-fs-dot '+(i===cfsIndex?'active':'')+'"></div>';
   }).join('');
 }
 
-// Back button
-history.replaceState({ base: true }, '');
-window.addEventListener('popstate', function(e) {
-  if (document.getElementById('compareFs').classList.contains('open')) {
-    closeCompareFs();
-  } else if (document.getElementById('lightbox').classList.contains('open')) {
-    closeLightbox();
-  } else {
-    history.pushState(null, '');
-  }
+history.replaceState({base:true},'');
+window.addEventListener('popstate',function(){
+  if(document.getElementById('compareFs').classList.contains('open')) closeCompareFs();
+  else if(document.getElementById('lightbox').classList.contains('open')) closeLightbox();
+  else history.pushState(null,'');
 });
 
-// Touch for fullscreen compare — attached once
-(function() {
-  var fs = document.getElementById('compareFs');
-  var slideState = {};
-  var touchStartX = 0, touchStartY = 0;
-  var isPinching = false, pinchStartDist = 0, pinchStartScale = 1, pinchMidX = 0, pinchMidY = 0;
-  var lastTap = 0;
-
-  function getS(idx) {
-    if (!slideState[idx]) slideState[idx] = { scale:1, tx:0, ty:0 };
-    return slideState[idx];
-  }
-  function applyT(idx) {
-    var img = document.getElementById('cfsImg' + idx);
-    if (!img) return;
-    var s = getS(idx);
-    img.style.transformOrigin = '0 0';
-    img.style.transform = 'translate(' + s.tx + 'px,' + s.ty + 'px) scale(' + s.scale + ')';
-  }
-  function resetSlide(idx) {
-    slideState[idx] = { scale:1, tx:0, ty:0 };
-    var img = document.getElementById('cfsImg' + idx);
-    if (img) { img.style.transition = 'transform 0.2s'; img.style.transformOrigin = 'center center'; img.style.transform = 'scale(1)'; }
-    if (idx === cfsIndex) cfsZoomScale = 1;
-  }
-
-  fs.addEventListener('touchstart', function(e) {
-    if (e.touches.length === 2) {
-      isPinching = true;
-      pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      pinchStartScale = getS(cfsIndex).scale;
-      pinchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      pinchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-      e.preventDefault();
-      return;
+(function(){
+  var fs=document.getElementById('compareFs');
+  var ss={}, txS=0, tyS=0, isPinch=false, pDist=0, pScale=1, pMidX=0, pMidY=0, lastTap=0;
+  function getS(i){if(!ss[i])ss[i]={scale:1,tx:0,ty:0};return ss[i];}
+  function applyT(i){var img=document.getElementById('cfsImg'+i);if(!img)return;var s=getS(i);img.style.transition='none';img.style.transformOrigin='0 0';img.style.transform='translate('+s.tx+'px,'+s.ty+'px) scale('+s.scale+')';}
+  function resetS(i){ss[i]={scale:1,tx:0,ty:0};var img=document.getElementById('cfsImg'+i);if(img){img.style.transition='transform 0.2s';img.style.transformOrigin='center center';img.style.transform='scale(1)';}if(i===cfsIndex)cfsZoomScale=1;}
+  fs.addEventListener('touchstart',function(e){
+    if(e.touches.length===2){isPinch=true;pDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);pScale=getS(cfsIndex).scale;pMidX=(e.touches[0].clientX+e.touches[1].clientX)/2;pMidY=(e.touches[0].clientY+e.touches[1].clientY)/2;e.preventDefault();return;}
+    isPinch=false;txS=e.touches[0].clientX;tyS=e.touches[0].clientY;
+  },{passive:false});
+  fs.addEventListener('touchmove',function(e){
+    if(e.touches.length===2&&isPinch){e.preventDefault();var dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);var ns=Math.min(6,Math.max(1,pScale*(dist/pDist)));var s=getS(cfsIndex);var sl=document.getElementById('cfsSlide'+cfsIndex);var r=sl?sl.getBoundingClientRect():{left:0,top:0};var fx=pMidX-r.left,fy=pMidY-r.top;s.tx=fx-(fx-s.tx)*(ns/s.scale);s.ty=fy-(fy-s.ty)*(ns/s.scale);s.scale=ns;cfsZoomScale=ns;applyT(cfsIndex);}
+  },{passive:false});
+  fs.addEventListener('touchend',function(e){
+    isPinch=false;
+    var now=Date.now();
+    if(now-lastTap<300&&e.changedTouches.length===1){resetS(cfsIndex);lastTap=0;return;}
+    lastTap=now;
+    if(e.changedTouches.length===1&&e.touches.length===0&&cfsZoomScale<=1.05){
+      var dx=e.changedTouches[0].clientX-txS,dy=Math.abs(e.changedTouches[0].clientY-tyS);
+      if(Math.abs(dx)>50&&Math.abs(dx)>dy){var prev=cfsIndex;if(dx<0&&cfsIndex<cfsPhotos.length-1)cfsIndex++;else if(dx>0&&cfsIndex>0)cfsIndex--;if(cfsIndex!==prev){resetS(prev);updateCfsUI();}}
     }
-    isPinching = false;
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-  }, { passive: false });
-
-  fs.addEventListener('touchmove', function(e) {
-    if (e.touches.length === 2 && isPinching) {
-      e.preventDefault();
-      var dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      var newScale = Math.min(6, Math.max(1, pinchStartScale * (dist / pinchStartDist)));
-      var s = getS(cfsIndex);
-      var slide = document.getElementById('cfsSlide' + cfsIndex);
-      var rect = slide ? slide.getBoundingClientRect() : { left:0, top:0 };
-      var fixX = pinchMidX - rect.left;
-      var fixY = pinchMidY - rect.top;
-      s.tx = fixX - (fixX - s.tx) * (newScale / s.scale);
-      s.ty = fixY - (fixY - s.ty) * (newScale / s.scale);
-      s.scale = newScale;
-      cfsZoomScale = newScale;
-      var img = document.getElementById('cfsImg' + cfsIndex);
-      if (img) { img.style.transition = 'none'; applyT(cfsIndex); }
-    }
-  }, { passive: false });
-
-  fs.addEventListener('touchend', function(e) {
-    isPinching = false;
-    var now = Date.now();
-    if (now - lastTap < 300 && e.changedTouches.length === 1) {
-      resetSlide(cfsIndex); lastTap = 0; return;
-    }
-    lastTap = now;
-    if (e.changedTouches.length === 1 && e.touches.length === 0 && cfsZoomScale <= 1.05) {
-      var dx = e.changedTouches[0].clientX - touchStartX;
-      var dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
-      if (Math.abs(dx) > 50 && Math.abs(dx) > dy) {
-        var prev = cfsIndex;
-        if (dx < 0 && cfsIndex < cfsPhotos.length - 1) cfsIndex++;
-        else if (dx > 0 && cfsIndex > 0) cfsIndex--;
-        if (cfsIndex !== prev) { resetSlide(prev); updateCfsUI(); }
-      }
-    }
-  }, { passive: true });
+  },{passive:true});
 })();
 
-// ============================================================
-// COMPARE / VIEW TABS
-// ============================================================
-document.getElementById('compareTabs').addEventListener('click', function(e) {
-  var btn = e.target.closest('.compare-tab');
-  if (!btn) return;
-  document.querySelectorAll('.compare-tab').forEach(function(b) { b.classList.remove('active'); });
-  btn.classList.add('active');
-  state.compareMode = btn.dataset.mode;
-  renderProgress();
+// Compare/view tab listeners
+document.getElementById('compareTabs').addEventListener('click',function(e){
+  var btn=e.target.closest('.compare-tab'); if(!btn) return;
+  document.querySelectorAll('.compare-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active'); state.compareMode=btn.dataset.mode; renderProgress();
 });
-
-document.getElementById('viewChips').addEventListener('click', function(e) {
-  var chip = e.target.closest('.view-chip');
-  if (!chip) return;
-  document.querySelectorAll('#viewChips .view-chip').forEach(function(c) { c.classList.remove('active'); });
-  chip.classList.add('active');
-  state.compareView = chip.dataset.view;
-  renderProgress();
+document.getElementById('viewChips').addEventListener('click',function(e){
+  var chip=e.target.closest('.view-chip'); if(!chip) return;
+  document.querySelectorAll('#viewChips .view-chip').forEach(function(c){c.classList.remove('active');});
+  chip.classList.add('active'); state.compareView=chip.dataset.view; renderProgress();
 });
 
 // ============================================================
 // TOAST
 // ============================================================
 var toastTimer;
-function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 2500);
+  toastTimer=setTimeout(function(){t.classList.remove('show');},2500);
 }
 
 // ============================================================
@@ -1541,13 +1497,14 @@ function showToast(msg) {
 // ============================================================
 loadState();
 renderDayTabs();
-document.getElementById('appVersion').textContent = 'v' + APP_VERSION;
-var todayMap = {0:'sat',1:'mon',2:'tue',3:'wed',4:'thu',5:'fri',6:'sat'};
-selectDay(WORKOUTS[todayMap[new Date().getDay()]] ? todayMap[new Date().getDay()] : 'mon');
+document.getElementById('appVersion').textContent='v'+APP_VERSION;
+var todayMap={0:'sun',1:'mon',2:'tue',3:'wed',4:'thu',5:'fri',6:'sat'};
+var todayKey=todayMap[new Date().getDay()];
+selectDay(WORKOUTS[todayKey]?todayKey:'mon');
 
-loadPhotos().then(function() {
-  if (document.getElementById('screen-progress').classList.contains('active')) renderProgress();
-}).catch(function(e) { console.error('Photo load error:', e); });
+loadPhotos().then(function(){
+  if(document.getElementById('screen-progress').classList.contains('active')) renderProgress();
+}).catch(function(e){console.error(e);});
 
 </script>
 </body>
