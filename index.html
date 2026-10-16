@@ -483,7 +483,7 @@
 
 <div class="screen active" id="screen-today">
   <div class="day-tabs" id="dayTabs"></div>
-  <div id="workoutContent"></div>
+  <div id="workoutContent" style="min-height:60vh"></div>
 </div>
 
 <div class="screen" id="screen-progress">
@@ -1160,26 +1160,30 @@ function selectDay(day, isAuto) {
 // ============================================================
 (function() {
   var swTx = 0, swTy = 0, swActive = false;
-  var cont = document.getElementById('screen-today');
-  cont.addEventListener('touchstart', function(e) {
-    // Only track single-finger swipe, ignore if fullscreen compare is open
-    if (e.touches.length !== 1) return;
+  // Attach to workoutContent — stays below the scrollable tab bar, no conflict
+  var cont = document.getElementById('workoutContent');
+  function onStart(e) {
+    if (e.touches.length !== 1) { swActive = false; return; }
     if (document.getElementById('compareFs').classList.contains('open')) return;
     swTx = e.touches[0].clientX;
     swTy = e.touches[0].clientY;
     swActive = true;
-  }, { passive: true });
-  cont.addEventListener('touchend', function(e) {
-    if (!swActive || e.changedTouches.length !== 1) { swActive = false; return; }
+  }
+  function onEnd(e) {
+    if (!swActive) return;
     swActive = false;
+    if (e.changedTouches.length !== 1) return;
     var dx = e.changedTouches[0].clientX - swTx;
     var dy = Math.abs(e.changedTouches[0].clientY - swTy);
-    // Horizontal swipe > 60px and more horizontal than vertical
     if (Math.abs(dx) < 60 || Math.abs(dx) < dy * 1.5) return;
     var idx = DAYS_ORDER.indexOf(state.currentDay);
     if (dx < 0 && idx < DAYS_ORDER.length - 1) selectDay(DAYS_ORDER[idx + 1]);
     else if (dx > 0 && idx > 0) selectDay(DAYS_ORDER[idx - 1]);
-  }, { passive: true });
+  }
+  function onCancel() { swActive = false; }
+  cont.addEventListener('touchstart', onStart, { passive: true });
+  cont.addEventListener('touchend',   onEnd,   { passive: true });
+  cont.addEventListener('touchcancel',onCancel,{ passive: true });
 })();
 
 // ============================================================
