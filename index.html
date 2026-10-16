@@ -179,7 +179,9 @@
   .w-value {
     font-family: 'Unbounded', sans-serif; font-size: 11px; font-weight: 600;
     color: var(--text); min-width: 54px; text-align: center; white-space: nowrap;
+    cursor: pointer; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 1px;
   }
+  .w-value:hover { border-bottom-color: var(--accent); }
   .w-history-btn {
     font-size: 10px; color: var(--text3);
     background: none; border: none; cursor: pointer;
@@ -575,7 +577,8 @@
 
 <script>
 
-var APP_VERSION = '1.9';
+
+var APP_VERSION = '2.0';
 
 // ============================================================
 // EXERCISES
@@ -602,8 +605,8 @@ var EXERCISES = {
     tech: 'Браться шире — прямой или чуть тупой угол в нижней точке между локтем и запястьем.\n\nПри снятии грифа проверни запястье вверх, чтобы гриф не лежал на суставе.', media: [] },
   tyaga_verh_parallel: { name: 'Тяга верхнего блока широким параллельным хватом', weight: 27.5, weightStep: 0.25, weightUnit: 'кг',
     tech: 'Не отпускать до конца. Спина и корпус — прямая линия с тросом, подкрутить копчик, напрячь пресс. Тянуть вниз чётко.\n\nДвижение начинается со спины — тянуть спиной, руками лишь дотягивать.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс: рёбра на одной линии с лобком.', media: [] },
-  pulover: { name: 'Пуловер с гантелью поперёк скамьи', weight: 7, weightStep: 0.25, weightUnit: 'кг',
-    tech: 'Прямой угол в коленях. Разобрать рёбра, растянуть лопатки. Наверх — собрать рёбра, пресс. Корпус параллельно полу.\n\nПодкручивать копчик и сокращать пресс — в верхней точке рёбра приблизить к тазовым костям.\n\nМедленное подконтрольное опускание гантели за голову на почти прямых руках (локти мягкие и развёрнуты; запястье не ниже локтя).', media: [] },
+  trx_podtyag: { name: 'Подтягивания с разведением рук в TRX-петлях', weight: null, weightStep: null, weightUnit: '', weightDisplay: '',
+    tech: '', media: [] },
   otzhimaniya: { name: 'Отжимания', weight: null, weightStep: null, weightUnit: '', weightDisplay: 'макс', tech: '', media: [] },
   yagodichny_most: { name: 'Ягодичный мост в тренажёре', weight: 42.5, weightStep: 0.25, weightUnit: 'кг',
     tech: 'Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.', media: [] },
@@ -625,9 +628,13 @@ var EXERCISES = {
   // Пятница — Ягодицы
   bolgarskie_smit: { name: 'Болгарские выпады в Смите', weight: 5, weightStep: 0.25, weightUnit: 'кг',
     tech: 'В пике таз оставлять чуть сзади, не снимать нагрузку с ягодицы. Больше вниз садиться, а не назад. Работать как насос (не до конца в обе стороны).', media: [] },
+  bolgarskie_gantel: { name: 'Болгарские выпады с гантелью', weight: 14, weightStep: 0.25, weightUnit: 'кг',
+    tech: 'В пике таз оставлять чуть сзади, не снимать нагрузку с ягодицы. Больше вниз садиться, а не назад. Работать как насос (не до конца в обе стороны).', media: [] },
   rumynskaya: { name: 'Румынская тяга в Смите', weight: 40, weightStep: 0.25, weightUnit: 'кг',
     tech: 'Держать спину прямо, отводить таз назад. Корпус идёт за весом для баланса.\n\nДо уровня колена — подсогнуть колено, микроподсед, ещё отвести таз назад. Встать ягодицей.\n\nОт копчика до затылка — прямая линия. Сначала прижать подбородок, и только потом таз назад.', media: [] },
-  sgibaniya_trenazher: { name: 'Сгибания в тренажёре лёжа/сидя', weight: 25, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  rumynskaya_gantel: { name: 'Румынская тяга с гантелями', weight: 20, weightStep: 0.25, weightUnit: 'кг × 2',
+    tech: 'Держать спину прямо, отводить таз назад. Корпус идёт за весом для баланса.\n\nДо уровня колена — подсогнуть колено, микроподсед, ещё отвести таз назад. Встать ягодицей.\n\nОт копчика до затылка — прямая линия. Сначала прижать подбородок, и только потом таз назад.', media: [] },
+  sgibaniya_trenazher: { name: 'Сгибания в тренажёре сидя', weight: 25, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
   razvedeniya_naklone: { name: 'Разведения в тренажёре с наклоном вперёд', weight: 50, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
 
   // Домашние
@@ -657,7 +664,7 @@ var WORKOUTS = {
     { label: 'Основной блок', exercises: [
       { id: 'zhim_lezha', sets: 4, reps: '5–8' },
       { id: 'tyaga_verh_parallel', sets: 4, reps: 10 },
-      { id: 'pulover', sets: 4, reps: 12, superset: { id: 'otzhimaniya', reps: 'макс' } },
+      { id: 'trx_podtyag', sets: 4, reps: 15, superset: { id: 'otzhimaniya', reps: 'макс' } },
       { id: 'yagodichny_most', sets: 4, reps: 10 },
       { id: 'zhim_vert_platformy', sets: 4, reps: 10 },
       { id: 'kikbeki', sets: 4, reps: 12 }
@@ -688,8 +695,7 @@ var WORKOUTS = {
       { id: 'vert_tyaga_1ruka', sets: 5, reps: 12, note: 'на руку' },
       { id: 'tyaga_kross_delta', sets: 4, reps: 12, note: 'на руку' },
       { id: 'protyazhka', sets: 4, reps: 12 },
-      { id: 'otvedeniya_1ruka', sets: 4, reps: 12, note: 'на руку', superset: { id: 'podyomy_nog_vise', reps: 'макс' } },
-      { id: 'protyazhka', sets: 4, reps: 12 }
+      { id: 'otvedeniya_1ruka', sets: 4, reps: 12, note: 'на руку', superset: { id: 'podyomy_nog_vise', reps: 'макс' } }
     ]}
   ]},
   thu: { label: 'ЧТ', type: 'home', title: 'Домашняя', sections: [
@@ -711,8 +717,8 @@ var WORKOUTS = {
     ]},
     { label: 'Основной блок', exercises: [
       { id: 'yagodichny_most', sets: 4, reps: 10 },
-      { id: 'bolgarskie_smit', sets: 4, reps: 10, note: 'на ногу' },
-      { id: 'rumynskaya', sets: 4, reps: 12 },
+      { id: 'bolgarskie_gantel', sets: 4, reps: 10, note: 'на ногу' },
+      { id: 'rumynskaya_gantel', sets: 4, reps: 12 },
       { id: 'kikbeki', sets: 4, reps: 12 },
       { id: 'sgibaniya_trenazher', sets: 4, reps: 12, superset: { id: 'razvedeniya_naklone', reps: 12 } }
     ]}
@@ -758,6 +764,8 @@ function loadState() {
     state.weightHistory = s.weightHistory || {};
     state.lastResetDate = s.lastResetDate || null;
     state.completedSets = s.completedSets || {};
+    state.manualDay     = s.manualDay     || null;
+    state.manualDayDate = s.manualDayDate || null;
     // Load measurements from both locations, merge
     state.measurements  = s.measurements  || {};
     try {
@@ -787,7 +795,9 @@ function saveState() {
       weightHistory: state.weightHistory,
       measurements:  state.measurements,
       lastResetDate: state.lastResetDate,
-      completedSets: state.completedSets
+      completedSets: state.completedSets,
+      manualDay:     state.manualDay     || null,
+      manualDayDate: state.manualDayDate || null
     };
     localStorage.setItem('workout_v3', JSON.stringify(data));
     // Also save measurements separately as backup
@@ -806,6 +816,16 @@ window.addEventListener('pagehide', saveState);
 // ============================================================
 var weightDebounceTimers = {};
 
+function recordWeightHistory(exId) {
+  var today = todayStr();
+  var cur = state.weights[exId] != null ? state.weights[exId] : 0;
+  if (!state.weightHistory[exId]) state.weightHistory[exId] = [];
+  var hist = state.weightHistory[exId];
+  if (!hist.length || hist[hist.length-1].date !== today) {
+    hist.push({ date: today, weight: cur });
+  }
+}
+
 function changeWeight(exId, delta, wEl) {
   var ex   = EXERCISES[exId];
   var step = ex.weightStep || 0.25;
@@ -813,13 +833,7 @@ function changeWeight(exId, delta, wEl) {
   var newVal = Math.round((cur + delta * step) * 100) / 100;
   if (newVal < 0) return;
 
-  // Record OLD value as history entry before first change today
-  var today = todayStr();
-  if (!state.weightHistory[exId]) state.weightHistory[exId] = [];
-  var hist = state.weightHistory[exId];
-  if (!weightDebounceTimers[exId] && (!hist.length || hist[hist.length-1].date !== today)) {
-    hist.push({ date: today, weight: cur });
-  }
+  if (!weightDebounceTimers[exId]) recordWeightHistory(exId);
 
   state.weights[exId] = newVal;
   if (wEl) wEl.textContent = newVal + ' ' + (ex.weightUnit || 'кг');
@@ -830,6 +844,38 @@ function changeWeight(exId, delta, wEl) {
     saveState();
   }, 800);
   saveState();
+}
+
+function openWeightInput(exId, wUid) {
+  var ex  = EXERCISES[exId];
+  var cur = state.weights[exId] != null ? state.weights[exId] : 0;
+  var el  = document.getElementById('w_' + wUid);
+  if (!el) return;
+  // Replace display with inline input
+  el.innerHTML = '<input type="number" id="wi_' + wUid + '" step="0.25" min="0" '
+    + 'style="width:64px;background:var(--card2);color:var(--text1);border:1px solid var(--accent);'
+    + 'border-radius:6px;padding:2px 6px;font-size:14px;font-weight:600;text-align:center;font-family:inherit" '
+    + 'value="' + cur + '" onclick="event.stopPropagation()" '
+    + 'onkeydown="if(event.key===\'Enter\'){event.preventDefault();commitWeightInput(\'' + exId + '\',\'' + wUid + '\')}" '
+    + 'onblur="commitWeightInput(\'' + exId + '\',\'' + wUid + '\')">';
+  var inp = document.getElementById('wi_' + wUid);
+  if (inp) { inp.focus(); inp.select(); }
+}
+
+function commitWeightInput(exId, wUid) {
+  var inp = document.getElementById('wi_' + wUid);
+  if (!inp) return;
+  var val = parseFloat(inp.value);
+  var ex  = EXERCISES[exId];
+  var el  = document.getElementById('w_' + wUid);
+  if (!isNaN(val) && val >= 0) {
+    recordWeightHistory(exId);
+    state.weights[exId] = Math.round(val * 100) / 100;
+    saveState();
+  }
+  var wVal = state.weights[exId];
+  var wTxt = (wVal != null) ? (wVal + ' ' + (ex.weightUnit || 'кг')) : '—';
+  if (el) el.innerHTML = wTxt;
 }
 
 // ============================================================
@@ -918,7 +964,7 @@ function wRow(exId, exObj, wUid) {
   var wTxt = (wVal != null) ? (wVal + ' ' + (exObj.weightUnit || '\u043a\u0433')) : (exObj.weightDisplay || '\u2014');
   return '<div class="ex-weight-controls">'
     + '<button class="w-btn" onclick="event.stopPropagation();changeWeight(\'' + exId + '\',-1,document.getElementById(\'w_' + wUid + '\'))">&#8722;</button>'
-    + '<div class="w-value" id="w_' + wUid + '">' + wTxt + '</div>'
+    + '<div class="w-value" id="w_' + wUid + '" onclick="event.stopPropagation();openWeightInput(\'' + exId + '\',\'' + wUid + '\')" title="Нажми для ввода с клавиатуры">' + wTxt + '</div>'
     + '<button class="w-btn" onclick="event.stopPropagation();changeWeight(\'' + exId + '\',1,document.getElementById(\'w_' + wUid + '\'))">+</button>'
     + '</div>'
     + '<button class="w-history-btn" onclick="event.stopPropagation();showHistory(\'' + exId + '\')">\ud83d\udcc8 \u0438\u0441\u0442\u043e\u0440\u0438\u044f</button>';
@@ -1097,11 +1143,44 @@ function renderDayTabs() {
     return '<button class="day-tab ' + active + '" onclick="selectDay(\'' + day + '\')">' + w.label + '</button>';
   }).join('');
 }
-function selectDay(day) {
+function selectDay(day, isAuto) {
   state.currentDay = day;
+  if (!isAuto) {
+    // User manually picked — remember it for today's date
+    state.manualDayDate = todayStr();
+    state.manualDay = day;
+    saveState();
+  }
   renderDayTabs();
   renderWorkout();
 }
+
+// ============================================================
+// DAY SWIPE
+// ============================================================
+(function() {
+  var swTx = 0, swTy = 0, swActive = false;
+  var cont = document.getElementById('screen-today');
+  cont.addEventListener('touchstart', function(e) {
+    // Only track single-finger swipe, ignore if fullscreen compare is open
+    if (e.touches.length !== 1) return;
+    if (document.getElementById('compareFs').classList.contains('open')) return;
+    swTx = e.touches[0].clientX;
+    swTy = e.touches[0].clientY;
+    swActive = true;
+  }, { passive: true });
+  cont.addEventListener('touchend', function(e) {
+    if (!swActive || e.changedTouches.length !== 1) { swActive = false; return; }
+    swActive = false;
+    var dx = e.changedTouches[0].clientX - swTx;
+    var dy = Math.abs(e.changedTouches[0].clientY - swTy);
+    // Horizontal swipe > 60px and more horizontal than vertical
+    if (Math.abs(dx) < 60 || Math.abs(dx) < dy * 1.5) return;
+    var idx = DAYS_ORDER.indexOf(state.currentDay);
+    if (dx < 0 && idx < DAYS_ORDER.length - 1) selectDay(DAYS_ORDER[idx + 1]);
+    else if (dx > 0 && idx > 0) selectDay(DAYS_ORDER[idx - 1]);
+  }, { passive: true });
+})();
 
 // ============================================================
 // SCREEN SWITCH
@@ -1500,11 +1579,14 @@ renderDayTabs();
 document.getElementById('appVersion').textContent='v'+APP_VERSION;
 var todayMap={0:'sun',1:'mon',2:'tue',3:'wed',4:'thu',5:'fri',6:'sat'};
 var todayKey=todayMap[new Date().getDay()];
-selectDay(WORKOUTS[todayKey]?todayKey:'mon');
+// If user manually picked a day today — restore it; otherwise open today
+var startDay = (state.manualDayDate === todayStr() && state.manualDay) ? state.manualDay : (WORKOUTS[todayKey] ? todayKey : 'mon');
+selectDay(startDay, true);
 
 loadPhotos().then(function(){
   if(document.getElementById('screen-progress').classList.contains('active')) renderProgress();
 }).catch(function(e){console.error(e);});
+
 
 </script>
 </body>
