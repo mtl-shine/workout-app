@@ -578,7 +578,7 @@
 <script>
 
 
-var APP_VERSION = '2.0';
+var APP_VERSION = '2.1';
 
 // ============================================================
 // EXERCISES
@@ -607,7 +607,10 @@ var EXERCISES = {
     tech: 'Не отпускать до конца. Спина и корпус — прямая линия с тросом, подкрутить копчик, напрячь пресс. Тянуть вниз чётко.\n\nДвижение начинается со спины — тянуть спиной, руками лишь дотягивать.\n\nЧуть больше отпускать вверх — растягивать широчайшие.\n\nДержать пресс: рёбра на одной линии с лобком.', media: [] },
   trx_podtyag: { name: 'Подтягивания с разведением рук в TRX-петлях', weight: null, weightStep: null, weightUnit: '', weightDisplay: '',
     tech: '', media: [] },
+  v_podemy_trx: { name: 'V-подъёмы в TRX', weight: null, weightStep: null, weightUnit: '', weightDisplay: 'свой вес', tech: '', media: [] },
+  pulover: { name: 'Пуловер с гантелью поперёк скамьи', weight: 10, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
   otzhimaniya: { name: 'Отжимания', weight: null, weightStep: null, weightUnit: '', weightDisplay: 'макс', tech: '', media: [] },
+  glyut: { name: 'Глют тренажёр (толчок платформы назад стоя)', weight: 20, weightStep: 0.25, weightUnit: 'кг', tech: 'Упереть опорную ногу в подушку. Стопа чётко под тазом.\n\nДвижущуюся ногу — ближе к середине платформы, максимум по верху. Максимально подконтрольно сократить вниз и вытолкнуть ягодицей, не слишком высоко.\n\nСтопа чуть вбок, носок чуть наружу.', media: [] },
   yagodichny_most: { name: 'Ягодичный мост в тренажёре', weight: 42.5, weightStep: 0.25, weightUnit: 'кг',
     tech: 'Не смотреть на рычаг, прижать подбородок.\n\nУменьшить амплитуду на 10–15 см. Стопы ближе на 5 см.', media: [] },
   zhim_vert_platformy: { name: 'Жим вертикальной платформы', weight: 50, weightStep: 0.25, weightUnit: 'кг',
@@ -618,14 +621,22 @@ var EXERCISES = {
   podtyagivaniya: { name: 'Подтягивания в гравитроне', weight: 19, weightStep: 0.25, weightUnit: 'кг противовес',
     tech: 'Не снимать нагрузку со спины, не отпускать суставы до конца, не висеть.\n\nОпускаться до момента натяжения подмышками. Из этой точки — грудью вверх.\n\nОпускаться ещё чуть ниже — добиться растяжения, подтягиваться с растянутой позиции.', media: [] },
   vert_tyaga_1ruka: { name: 'Вертикальная тяга в кроссовере по 1й руке', weight: 10, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  tyaga_gantel_naklone: { name: 'Тяга гантели к поясу в наклоне', weight: 10, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  zhimy_gantelei: { name: 'Жим гантелей от груди сидя / в тренажёре', weight: 10, weightStep: 0.25, weightUnit: 'кг', tech: 'Когда опускаешь вниз — локти закручивать вперёд перед корпусом.', media: [] },
+  podyomy_zad_delta_upor: { name: 'Подъёмы гантелей на задние дельты в наклоне с упором лбом', weight: 6, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
   tyaga_kross_delta: { name: 'Тяга в кроссовере на заднюю дельту в наклоне по 1й руке', weight: 5, weightStep: 0.25, weightUnit: 'кг',
     tech: 'Задняя дельта должна работать без существенного движения лопаток. Ссутулиться, разобрать лопатки, выключить их. Тянуть только локти вверх — к ушам.\n\nВниз — отпустить подконтрольно, попытаться лопатками обнять лавку.', media: [] },
-  protyazhka: { name: 'Протяжка с нижнего блока лёжа', weight: 17.5, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  protyazhka: { name: 'Протяжка с нижнего блока', weight: 17.5, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
   otvedeniya_1ruka: { name: 'Отведения гантелей сидя по 1й руке', weight: 3, weightStep: 0.25, weightUnit: 'кг',
     tech: 'Задняя дельта должна работать без существенного движения лопаток. Ссутулиться, разобрать лопатки, выключить их. Тянуть только локти вверх — к ушам.\n\nВниз — отпустить подконтрольно, попытаться лопатками обнять лавку.', media: [] },
   podyomy_nog_vise: { name: 'Подъёмы ног в висе', weight: null, weightStep: null, weightUnit: '', weightDisplay: 'макс', tech: '', media: [] },
 
   // Пятница — Ягодицы
+  rumynskaya_1noga: { name: 'Румынская тяга по одной ноге', weight: 10, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  ekstenziya_yagodicy: { name: 'Экстензия с акцентом на ягодицы', weight: 10, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  razvedeniya_spina: { name: 'Разведения в тренажёре спина прижата', weight: 25, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  sgibaniya_stoya_1noga: { name: 'Сгибания в тренажёре стоя по 1 ноге', weight: 12.5, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
+  razgibaniya_trenazher: { name: 'Разгибания в тренажёре', weight: 10, weightStep: 0.25, weightUnit: 'кг', tech: '', media: [] },
   bolgarskie_smit: { name: 'Болгарские выпады в Смите', weight: 5, weightStep: 0.25, weightUnit: 'кг',
     tech: 'В пике таз оставлять чуть сзади, не снимать нагрузку с ягодицы. Больше вниз садиться, а не назад. Работать как насос (не до конца в обе стороны).', media: [] },
   bolgarskie_gantel: { name: 'Болгарские выпады с гантелью', weight: 14, weightStep: 0.25, weightUnit: 'кг',
@@ -655,24 +666,24 @@ var EXERCISES = {
 var WORKOUTS = {
   mon: { label: 'ПН', type: 'gym', title: 'ФулБади', sections: [
     { label: 'До зала', homeSection: true, exercises: [
-      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
-      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 вида × 2 лопатки' }
+      { id: 'dyhatelnoe', sets: 1, reps: '10' },
+      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 положения × 2 лопатки' }
     ]},
     { label: 'Начало тренировки', exercises: [
-      { id: 'ikry', sets: 2, reps: 15, superset: { id: 'press', reps: 12 } }
+      { id: 'ikry', sets: 2, reps: 15 }
     ]},
     { label: 'Основной блок', exercises: [
-      { id: 'zhim_lezha', sets: 4, reps: '5–8' },
+      { id: 'v_podemy_trx', sets: 4, reps: '12–15' },
       { id: 'tyaga_verh_parallel', sets: 4, reps: 10 },
-      { id: 'trx_podtyag', sets: 4, reps: 15, superset: { id: 'otzhimaniya', reps: 'макс' } },
+      { id: 'pulover', sets: 4, reps: 12, superset: { id: 'otzhimaniya', reps: 'макс' } },
       { id: 'yagodichny_most', sets: 4, reps: 10 },
-      { id: 'zhim_vert_platformy', sets: 4, reps: 10 },
-      { id: 'kikbeki', sets: 4, reps: 12 }
+      { id: 'rumynskaya_gantel', sets: 4, reps: 10 },
+      { id: 'glyut', sets: 4, reps: 12 }
     ]}
   ]},
   tue: { label: 'ВТ', type: 'home', title: 'Домашняя', sections: [
     { label: 'Основной блок', exercises: [
-      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
+      { id: 'dyhatelnoe', sets: 1, reps: '10' },
       { id: 'bloki_sverkhu', sets: 1, reps: '12–15' },
       { id: 'bloki_podmyshki', sets: 1, reps: '12–15' },
       { id: 'zavedenie_blinka', sets: 1, reps: '12–15' },
@@ -684,23 +695,24 @@ var WORKOUTS = {
   ]},
   wed: { label: 'СР', type: 'gym', title: 'Верх', sections: [
     { label: 'До зала', homeSection: true, exercises: [
-      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
-      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 вида × 2 лопатки' }
+      { id: 'dyhatelnoe', sets: 1, reps: '10' },
+      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 положения × 2 лопатки' }
     ]},
     { label: 'Начало тренировки', exercises: [
-      { id: 'ikry', sets: 2, reps: 15, superset: { id: 'press', reps: 12 } }
+      { id: 'ikry', sets: 2, reps: 15 }
     ]},
     { label: 'Основной блок', exercises: [
       { id: 'podtyagivaniya', sets: 4, reps: 10 },
-      { id: 'vert_tyaga_1ruka', sets: 5, reps: 12, note: 'на руку' },
-      { id: 'tyaga_kross_delta', sets: 4, reps: 12, note: 'на руку' },
-      { id: 'protyazhka', sets: 4, reps: 12 },
-      { id: 'otvedeniya_1ruka', sets: 4, reps: 12, note: 'на руку', superset: { id: 'podyomy_nog_vise', reps: 'макс' } }
+      { id: 'tyaga_gantel_naklone', sets: 5, reps: 12, note: 'на руку' },
+      { id: 'zhimy_gantelei', sets: 4, reps: 12 },
+      { id: 'podyomy_zad_delta_upor', sets: 4, reps: 12, note: 'на руку' },
+      { id: 'otvedeniya_1ruka', sets: 4, reps: 12, note: 'на руку', superset: { id: 'press', reps: 'макс' } },
+      { id: 'protyazhka', sets: 4, reps: 12 }
     ]}
   ]},
   thu: { label: 'ЧТ', type: 'home', title: 'Домашняя', sections: [
     { label: 'Основной блок', exercises: [
-      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
+      { id: 'dyhatelnoe', sets: 1, reps: '10' },
       { id: 'bloki_sverkhu', sets: 1, reps: '12–15' },
       { id: 'bloki_podmyshki', sets: 1, reps: '12–15' },
       { id: 'zavedenie_blinka', sets: 1, reps: '12–15' },
@@ -712,26 +724,27 @@ var WORKOUTS = {
   ]},
   fri: { label: 'ПТ', type: 'gym', title: 'Ягодицы', sections: [
     { label: 'До зала', homeSection: true, exercises: [
-      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
-      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 вида × 2 лопатки' }
+      { id: 'dyhatelnoe', sets: 1, reps: '10' },
+      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 положения × 2 лопатки' }
     ]},
     { label: 'Основной блок', exercises: [
       { id: 'yagodichny_most', sets: 4, reps: 10 },
-      { id: 'bolgarskie_gantel', sets: 4, reps: 10, note: 'на ногу' },
-      { id: 'rumynskaya_gantel', sets: 4, reps: 12 },
-      { id: 'kikbeki', sets: 4, reps: 12 },
-      { id: 'sgibaniya_trenazher', sets: 4, reps: 12, superset: { id: 'razvedeniya_naklone', reps: 12 } }
+      { id: 'rumynskaya_1noga', sets: 4, reps: 12, note: 'на ногу' },
+      { id: 'ekstenziya_yagodicy', sets: 4, reps: 12 },
+      { id: 'razvedeniya_spina', sets: 4, reps: 15, superset: { id: 'razvedeniya_naklone', reps: 15 } },
+      { id: 'sgibaniya_stoya_1noga', sets: 4, reps: 15 },
+      { id: 'razgibaniya_trenazher', sets: 3, reps: '15–20' }
     ]}
   ]},
   sat: { label: 'СБ', type: 'home', title: 'Дыхание', sections: [
     { label: 'Упражнение', exercises: [
-      { id: 'dyhatelnoe', sets: 1, reps: '10–15' }
+      { id: 'dyhatelnoe', sets: 1, reps: '10' }
     ]}
   ]},
   sun: { label: 'ВС', type: 'home', title: 'Восстановление', sections: [
     { label: 'Упражнения', exercises: [
-      { id: 'dyhatelnoe', sets: 1, reps: '10–15' },
-      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 вида × 2 лопатки' }
+      { id: 'dyhatelnoe', sets: 1, reps: '10' },
+      { id: 'lopatki', sets: 1, reps: '10', note: '× 3 положения × 2 лопатки' }
     ]}
   ]}
 };
@@ -1590,7 +1603,6 @@ selectDay(startDay, true);
 loadPhotos().then(function(){
   if(document.getElementById('screen-progress').classList.contains('active')) renderProgress();
 }).catch(function(e){console.error(e);});
-
 
 </script>
 </body>
